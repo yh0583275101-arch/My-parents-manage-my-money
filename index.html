@@ -3,59 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול כספים מודרני</title>
+    <title>ניהול תקציב</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="main-wrapper">
-        <!-- תפריט כפתורים שמאלי - רשימה יורדת -->
+        <!-- צד ימין: תפריט כפתורים ויתרה -->
         <div class="side-menu" id="side-menu" style="display: none;">
-            <button class="btn-plus" onclick="openModal('plus')">הוספת כסף (+)</button>
-            <button class="btn-minus" onclick="openModal('minus')">הורדת כסף (-)</button>
-            <button class="secondary" onclick="openModal('password')">שינוי סיסמה</button>
-            <button class="secondary" onclick="exportToExcel()">הורדה לאקסל</button>
-            <button class="secondary" onclick="logout()">יציאה</button>
-        </div>
-
-        <div id="main-content" class="dashboard" style="display: none;">
-            <div class="history-container">
-                <h2 style="text-align: center; margin-bottom: 25px;">פעולות אחרונות</h2>
-                <div id="transactions-list" class="bank-list"></div>
+            <div class="buttons-list">
+                <button class="btn-plus" onclick="openModal('plus')">הוספת כסף (+)</button>
+                <button class="btn-minus" onclick="openModal('minus')">הורדת כסף (-)</button>
+                <button class="secondary" onclick="openModal('password')">שינוי סיסמה</button>
+                <button class="secondary" onclick="exportToExcel()">הורדה לאקסל</button>
+                <button class="secondary" onclick="logout()">יציאה</button>
             </div>
 
+            <!-- היתרה נמצאת כאן, בתחתית התפריט הימני -->
             <div class="balance-container">
                 <span class="balance-label">יתרה נוכחית</span>
                 <span id="total-balance" class="balance-value">0 ₪</span>
             </div>
         </div>
 
-        <!-- מסך כניסה -->
-        <div id="auth-screen" class="overlay">
+        <!-- צד שמאל: היסטוריית פעולות (תופס את שאר המסך) -->
+        <div id="main-content" class="dashboard" style="display: none;">
+            <div class="history-container">
+                <h2>פעולות אחרונות</h2>
+                <div id="transactions-list" class="bank-list"></div>
+            </div>
+        </div>
+
+        <!-- מסך כניסה (נשאר במרכז) -->
+        <div id="auth-screen" class="overlay" style="display: none;">
             <div class="modal">
-                <h2 id="auth-title" style="margin-bottom: 20px;">שלום!</h2>
+                <h2 id="auth-title">כניסה</h2>
                 <input type="password" id="password-input" placeholder="הכנס סיסמה">
                 <button class="btn-plus" style="width: 100%;" onclick="handleAuth()">כניסה</button>
             </div>
         </div>
     </div>
 
-    <!-- חלון פעולות קופץ -->
+    <!-- חלונות קופצים (Modals) -->
     <div id="action-modal" class="overlay" style="display: none;" onclick="closeModal()">
         <div class="modal" onclick="event.stopPropagation()">
             <h2 id="modal-title">פעולה</h2>
             <div id="modal-body"></div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button id="modal-confirm-btn" style="flex: 1;">אישור</button>
-                <button class="secondary" style="flex: 1;" onclick="closeModal()">ביטול</button>
+                <button class="secondary" style="flex: 1; color: black !important;" onclick="closeModal()">ביטול</button>
             </div>
         </div>
     </div>
 
-    <!-- התראה מעוצבת -->
     <div id="alert-overlay" class="overlay" style="display: none;">
         <div class="modal" style="width: 250px;">
             <p id="alert-text" style="font-weight: 600;"></p>
-            <button class="btn-plus" style="width: 100%; margin-top: 15px;" onclick="closeAlert()">הבנתי</button>
+            <button class="btn-plus" style="width: 100%;" onclick="closeAlert()">הבנתי</button>
         </div>
     </div>
 
