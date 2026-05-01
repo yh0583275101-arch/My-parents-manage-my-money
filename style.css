@@ -1,120 +1,133 @@
+/* פלטת צבעים מודרנית */
 :root {
     --bg-gradient: linear-gradient(135deg, #e0f2f1 0%, #f3e5f5 100%);
     --sea-blue: #0077be;
     --ocean-blue: #00a8cc;
     --purple-pink: #a29bfe;
     --hot-pink: #fd79a8;
-    --text-color: #2d3436;
-    --glass: rgba(255, 255, 255, 0.7);
+    --text-dark: #2d3436;
+    --glass-bg: rgba(255, 255, 255, 0.7);
 }
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--bg-gradient);
     background-attachment: fixed;
-    color: var(--text-color);
+    color: var(--text-dark);
     height: 100vh;
     overflow: hidden;
     direction: rtl;
 }
 
+/* מעטפת ראשית */
 #main-wrapper {
     display: flex;
     height: 100vh;
     width: 100vw;
 }
 
-/* תפריט צד שמאל - רשימה יורדת */
+/* תפריט צד שמאל - רשימה אנכית */
 .side-menu {
     position: fixed;
     top: 20px;
     left: 20px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     z-index: 100;
 }
 
+/* עיצוב כפתורי בועה */
 button {
     border: none;
-    border-radius: 50px; /* בועה עגולה */
-    padding: 12px 25px;
+    border-radius: 30px; /* צורת בועה מעוגלת */
+    padding: 12px 22px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    font-size: 15px;
+    font-size: 14px;
     color: white;
+    text-align: center;
 }
 
 .btn-plus { background: linear-gradient(to right, var(--sea-blue), var(--ocean-blue)); }
 .btn-minus { background: linear-gradient(to right, var(--hot-pink), var(--purple-pink)); }
-.secondary { background: var(--glass); color: var(--text-color); backdrop-filter: blur(5px); }
+.secondary { background: var(--glass-bg); color: var(--text-dark); backdrop-filter: blur(5px); }
 
 button:hover {
-    transform: translateY(-3px) scale(1.05);
+    transform: scale(1.08);
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
-/* אזור היתרה - למטה בצד ימין */
+/* אזור היתרה - למטה בצד ימין ללא רקע */
 .balance-container {
     position: fixed;
-    bottom: 40px;
+    bottom: 30px;
     right: 40px;
     text-align: right;
-    pointer-events: none;
 }
 
-.balance-label { font-size: 1.2rem; opacity: 0.8; }
+.balance-label { font-size: 1.1rem; opacity: 0.7; font-weight: 500; }
 .balance-value { 
-    font-size: 4rem; 
+    font-size: 4.5rem; 
     font-weight: 900; 
     display: block;
     background: linear-gradient(45deg, var(--sea-blue), var(--hot-pink));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    line-height: 1;
 }
 
-/* רשימת תנועות - מרכז המסך */
+/* רשימת תנועות - עיצוב בנק מודרני */
 .dashboard {
     flex: 1;
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 40px;
+    align-items: flex-start;
+    padding-top: 50px;
 }
 
 .history-container {
-    width: 100%;
-    max-width: 800px;
-    height: 70vh;
-    background: var(--glass);
+    width: 90%;
+    max-width: 850px;
+    height: 75vh;
+    background: var(--glass-bg);
     backdrop-filter: blur(15px);
-    border-radius: 30px;
-    padding: 30px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    border-radius: 25px;
+    padding: 25px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
     overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.3);
 }
 
 .bank-list .item {
     display: flex;
     justify-content: space-between;
-    padding: 20px;
-    margin-bottom: 10px;
-    background: rgba(255,255,255,0.5);
-    border-radius: 20px;
-    transition: 0.3s;
+    align-items: center;
+    padding: 18px;
+    margin-bottom: 12px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 18px;
+    transition: 0.2s;
 }
 
-.item:hover { background: white; }
+.item:hover { background: white; transform: translateX(-5px); }
 
-/* חלונות קופצים וטשטוש */
+.item-info { display: flex; flex-direction: column; }
+.item-date { font-size: 12px; opacity: 0.6; }
+.item-desc { font-weight: 600; font-size: 16px; margin-top: 3px; }
+
+.amount-pos { color: #10ac84; font-weight: 800; font-size: 18px; }
+.amount-neg { color: #ee5253; font-weight: 800; font-size: 18px; }
+
+/* חלונות קופצים (Modals) */
 .overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(12px); /* טשטוש הרקע */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -123,23 +136,30 @@ button:hover {
 
 .modal {
     background: white;
-    padding: 40px;
-    border-radius: 35px;
-    width: 350px;
+    padding: 35px;
+    border-radius: 30px;
+    width: 320px;
     text-align: center;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
 }
 
 .blur { filter: blur(15px); }
 
 input {
     width: 100%;
-    padding: 15px;
+    padding: 14px;
     margin: 10px 0;
-    border: 2px solid #eee;
-    border-radius: 20px;
+    border: 1px solid #eee;
+    background: #f9f9f9;
+    border-radius: 15px;
     outline: none;
-    transition: 0.3s;
+    font-size: 16px;
+    box-sizing: border-box;
 }
 
-input:focus { border-color: var(--ocean-blue); }
+input:focus { border-color: var(--ocean-blue); background: white; }
+
+/* עיצוב גלילה */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
