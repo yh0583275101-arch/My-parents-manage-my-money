@@ -9,26 +9,21 @@ async function init() {
         currentPassword = data.password;
         transactions = data.transactions;
 
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+        // אם אין סיסמה מוגדרת בשיטס, או שהמשתמש כבר מחובר, נכנסים ישר
+        if (!currentPassword || sessionStorage.getItem('isLoggedIn') === 'true') {
             showMainScreen();
-        } else if (!currentPassword) {
+        } else {
+            // רק אם יש סיסמה בשיטס והמשתמש לא מחובר - מציגים מסך כניסה
             document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('auth-title').innerText = "קביעת סיסמה ראשונית";
         }
     } catch (e) {
-        showAlert("שגיאה בטעינת נתונים. וודא שה-URL תקין.");
+        console.error("טעינה נכשלה", e);
     }
 }
 
 async function handleAuth() {
     const input = document.getElementById('password-input').value;
-    if (!input) return showAlert("נא להזין סיסמה");
-
-    if (!currentPassword) {
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "setPassword", newPass: input }) });
-        showAlert("הסיסמה נקבעה בהצלחה!");
-        setTimeout(() => location.reload(), 1500);
-    } else if (input === currentPassword) {
+    if (input === currentPassword) {
         sessionStorage.setItem('isLoggedIn', 'true');
         showMainScreen();
     } else {
@@ -39,7 +34,7 @@ async function handleAuth() {
 function showMainScreen() {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('main-content').style.display = 'flex';
-    document.getElementById('side-menu').style.display = 'flex';
+    document.getElementById('side-menu').style.display = 'flex'; // וודא שהתפריט מוצג
     render();
 }
 
@@ -49,53 +44,29 @@ function render() {
     let total = 0;
     list.innerHTML = "";
 
-    // מיון מהחדש לישן
-    [...transactions].reverse().forEach(t => {
-        const income = t[2] !== "" ? parseFloat(t[2]) : 0;
-        const expense = t[3] !== "" ? parseFloat(t[3]) : 0;
-        const amt = income > 0 ? income : -expense;
-        total += amt;
+    if (transactions && transactions.length > 0) {
+        [...transactions].reverse().forEach(t => {
+            const income = t[2] !== "" ? parseFloat(t[2]) : 0;
+            const expense = t[3] !== "" ? parseFloat(t[3]) : 0;
+            const amt = income > 0 ? income : -expense;
+            total += amt;
 
-        const date = new Date(t[0]).toLocaleDateString('he-IL');
-        
-        list.innerHTML += `
-            <div class="item">
-                <div class="item-info">
-                    <span class="item-date">${date}</span>
-                    <span class="item-desc">${t[1]}</span>
-                </div>
-                <span class="${amt >= 0 ? 'amount-pos' : 'amount-neg'}">${amt.toLocaleString()} ₪</span>
-            </div>`;
-    });
+            const date = t[0] ? new Date(t[0]).toLocaleDateString('he-IL') : "---";
+            
+            list.innerHTML += `
+                <div class="item">
+                    <div class="item-info">
+                        <span class="item-date">${date}</span>
+                        <span class="item-desc">${t[1] || "ללא תיאור"}</span>
+                    </div>
+                    <span class="${amt >= 0 ? 'amount-pos' : 'amount-neg'}">${amt.toLocaleString()} ₪</span>
+                </div>`;
+        });
+    }
     totalEl.innerText = total.toLocaleString() + " ₪";
 }
 
-async function submitAction(type) {
-    const amt = document.getElementById('modal-amount').value;
-    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
-    if (!amt) return showAlert("נא להזין סכום");
-
-    closeModal();
-    showAlert("שומר נתונים...");
-    
-    const finalAmt = type === 'plus' ? amt : -amt;
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "add", amount: finalAmt, desc: desc }) });
-    location.reload();
-}
-
-async function updatePassword() {
-    const oldP = document.getElementById('old-p').value;
-    const newP = document.getElementById('new-p').value;
-
-    if (oldP !== currentPassword) return showAlert("סיסמה נוכחית שגויה");
-    if (!newP) return showAlert("נא להזין סיסמה חדשה");
-
-    closeModal();
-    showAlert("מעדכן סיסמה...");
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "setPassword", newPass: newP }) });
-    location.reload();
-}
-
+// פונקציות עזר לחלונות
 function openModal(type) {
     const modal = document.getElementById('action-modal');
     const title = document.getElementById('modal-title');
@@ -109,19 +80,43 @@ function openModal(type) {
         title.innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
         body.innerHTML = `
             <input type="number" id="modal-amount" placeholder="סכום (₪)">
-            <input type="text" id="modal-desc" placeholder="תיאור הפעולה">
+            <input type="text" id="modal-desc" placeholder="תיאור">
         `;
         btn.onclick = () => submitAction(type);
-        btn.className = type === 'plus' ? 'btn-plus' : 'btn-minus';
     } else if (type === 'password') {
-        title.innerText = "שינוי סיסמה";
+        title.innerText = currentPassword ? "שינוי סיסמה" : "הגדרת סיסמה חדשה";
         body.innerHTML = `
-            <input type="password" id="old-p" placeholder="סיסמה נוכחית">
+            ${currentPassword ? '<input type="password" id="old-p" placeholder="סיסמה נוכחית">' : ''}
             <input type="password" id="new-p" placeholder="סיסמה חדשה">
         `;
         btn.onclick = updatePassword;
-        btn.className = 'btn-plus';
     }
+}
+
+async function submitAction(type) {
+    const amt = document.getElementById('modal-amount').value;
+    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
+    if (!amt) return showAlert("נא להזין סכום");
+
+    closeModal();
+    showAlert("שומר נתונים...");
+    const finalAmt = type === 'plus' ? amt : -amt;
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "add", amount: finalAmt, desc: desc }) });
+    location.reload();
+}
+
+async function updatePassword() {
+    const newP = document.getElementById('new-p').value;
+    if (currentPassword) {
+        const oldP = document.getElementById('old-p').value;
+        if (oldP !== currentPassword) return showAlert("סיסמה נוכחית שגויה");
+    }
+    if (!newP) return showAlert("נא להזין סיסמה");
+
+    closeModal();
+    showAlert("מעדכן...");
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "setPassword", newPass: newP }) });
+    location.reload();
 }
 
 function closeModal() {
@@ -136,18 +131,6 @@ function showAlert(text) {
 
 function closeAlert() {
     document.getElementById('alert-overlay').style.display = 'none';
-}
-
-function exportToExcel() {
-    let csv = "\ufeffתאריך,תיאור,הכנסה,הוצאה\n";
-    transactions.forEach(t => {
-        csv += `${new Date(t[0]).toLocaleDateString('he-IL')},${t[1]},${t[2] || ""},${t[3] || ""}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `דוח_כספי_${new Date().toLocaleDateString('he-IL')}.csv`;
-    link.click();
 }
 
 function logout() {
