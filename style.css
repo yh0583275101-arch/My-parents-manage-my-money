@@ -1,4 +1,4 @@
-/* פלטת צבעים מודרנית */
+/* הגדרות צבעים ומשתנים */
 :root {
     --bg-gradient: linear-gradient(135deg, #e0f2f1 0%, #f3e5f5 100%);
     --sea-blue: #0077be;
@@ -27,12 +27,12 @@ body {
     width: 100vw;
 }
 
-/* תפריט צד שמאל - רשימה אנכית */
+/* תפריט צד שמאל - רשימה יורדת */
 .side-menu {
     position: fixed;
     top: 20px;
     left: 20px;
-    display: flex;
+    display: none; /* נשלט ע"י ה-JS */
     flex-direction: column;
     gap: 12px;
     z-index: 100;
@@ -41,27 +41,39 @@ body {
 /* עיצוב כפתורי בועה */
 button {
     border: none;
-    border-radius: 30px; /* צורת בועה מעוגלת */
-    padding: 12px 22px;
+    border-radius: 30px;
+    padding: 12px 25px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     font-size: 14px;
     color: white;
     text-align: center;
 }
 
-.btn-plus { background: linear-gradient(to right, var(--sea-blue), var(--ocean-blue)); }
-.btn-minus { background: linear-gradient(to right, var(--hot-pink), var(--purple-pink)); }
-.secondary { background: var(--glass-bg); color: var(--text-dark); backdrop-filter: blur(5px); }
+.btn-plus { 
+    background: linear-gradient(to right, var(--sea-blue), var(--ocean-blue)) !important; 
+    color: white !important;
+}
+
+.btn-minus { 
+    background: linear-gradient(to right, var(--hot-pink), var(--purple-pink)) !important; 
+    color: white !important;
+}
+
+.secondary { 
+    background: var(--glass-bg) !important; 
+    color: var(--text-dark) !important; 
+    backdrop-filter: blur(5px);
+}
 
 button:hover {
-    transform: scale(1.08);
+    transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
-/* אזור היתרה - למטה בצד ימין ללא רקע */
+/* אזור היתרה - למטה בצד ימין */
 .balance-container {
     position: fixed;
     bottom: 30px;
@@ -69,7 +81,7 @@ button:hover {
     text-align: right;
 }
 
-.balance-label { font-size: 1.1rem; opacity: 0.7; font-weight: 500; }
+.balance-label { font-size: 1.1rem; opacity: 0.7; }
 .balance-value { 
     font-size: 4.5rem; 
     font-weight: 900; 
@@ -77,10 +89,9 @@ button:hover {
     background: linear-gradient(45deg, var(--sea-blue), var(--hot-pink));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    line-height: 1;
 }
 
-/* רשימת תנועות - עיצוב בנק מודרני */
+/* רשימת תנועות - עיצוב מודרני */
 .dashboard {
     flex: 1;
     display: flex;
@@ -91,7 +102,7 @@ button:hover {
 
 .history-container {
     width: 90%;
-    max-width: 850px;
+    max-width: 800px;
     height: 75vh;
     background: var(--glass-bg);
     backdrop-filter: blur(15px);
@@ -110,24 +121,21 @@ button:hover {
     margin-bottom: 12px;
     background: rgba(255,255,255,0.4);
     border-radius: 18px;
-    transition: 0.2s;
 }
-
-.item:hover { background: white; transform: translateX(-5px); }
 
 .item-info { display: flex; flex-direction: column; }
 .item-date { font-size: 12px; opacity: 0.6; }
-.item-desc { font-weight: 600; font-size: 16px; margin-top: 3px; }
+.item-desc { font-weight: 600; font-size: 16px; }
 
-.amount-pos { color: #10ac84; font-weight: 800; font-size: 18px; }
-.amount-neg { color: #ee5253; font-weight: 800; font-size: 18px; }
+.amount-pos { color: #27ae60; font-weight: bold; }
+.amount-neg { color: #e74c3c; font-weight: bold; }
 
 /* חלונות קופצים (Modals) */
 .overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(12px); /* טשטוש הרקע */
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -140,26 +148,26 @@ button:hover {
     border-radius: 30px;
     width: 320px;
     text-align: center;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
 }
 
-.blur { filter: blur(15px); }
+.blur { filter: blur(12px); }
 
 input {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     margin: 10px 0;
     border: 1px solid #eee;
-    background: #f9f9f9;
     border-radius: 15px;
     outline: none;
-    font-size: 16px;
     box-sizing: border-box;
 }
 
-input:focus { border-color: var(--ocean-blue); background: white; }
+#modal-confirm-btn {
+    opacity: 1 !important;
+    cursor: pointer !important;
+}
 
-/* עיצוב גלילה */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
+/* עיצוב פס גלילה */
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
