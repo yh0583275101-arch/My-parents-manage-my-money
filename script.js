@@ -3,23 +3,44 @@ let currentPassword = "";
 let transactions = [];
 
 async function init() {
-    // מציגים מסך טעינה לבן כדי שלא יהיו קפיצות
-    document.getElementById('auth-screen').style.display = 'none'; 
-    
+    // שלב 1: מסתירים הכל עד שהנתונים נטענים
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('side-menu').style.display = 'none';
+
     try {
+        // שלב 2: פנייה לגוגל לקבלת הסיסמה והנתונים
         const res = await fetch(SCRIPT_URL);
         const data = await res.json();
-        currentPassword = data.password;
-        transactions = data.transactions;
+        
+        currentPassword = data.password ? data.password.toString() : "";
+        transactions = data.transactions || [];
 
-        if (!currentPassword || sessionStorage.getItem('isLoggedIn') === 'true') {
+        // שלב 3: בדיקת לוגיקת כניסה
+        if (!currentPassword || currentPassword.trim() === "") {
+            // אם אין סיסמה בגיליון - כניסה ישירה
+            showMainScreen();
+        } else if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            // אם המשתמש כבר מחובר בטאב הנוכחי
             showMainScreen();
         } else {
-            // רק אם באמת יש סיסמה בשיטס, מציגים את מסך הנעילה
+            // יש סיסמה וצריך להזין אותה
             document.getElementById('auth-screen').style.display = 'flex';
         }
     } catch (e) {
-        console.error("שגיאה בחיבור לגוגל", e);
+        console.error("שגיאה בטעינה:", e);
+        showAlert("שגיאה בחיבור למסד הנתונים. נסה לרענן.");
+    }
+}
+
+async function handleAuth() {
+    const input = document.getElementById('password-input').value;
+    
+    if (input.toString() === currentPassword) {
+        sessionStorage.setItem('isLoggedIn', 'true');
+        showMainScreen();
+    } else {
+        showAlert("סיסמה שגויה!");
     }
 }
 
@@ -30,6 +51,35 @@ function showMainScreen() {
     render();
 }
 
+function render() {
+    const list = document.getElementById('transactions-list');
+    const totalEl = document.getElementById('total-balance');
+    let total = 0;
+    list.innerHTML = "";
+
+    if (transactions && transactions.length > 0) {
+        [...transactions].reverse().forEach(t => {
+            const income = t[2] !== "" ? parseFloat(t[2]) : 0;
+            const expense = t[3] !== "" ? parseFloat(t[3]) : 0;
+            const amt = income > 0 ? income : -expense;
+            total += amt;
+
+            const date = t[0] ? new Date(t[0]).toLocaleDateString('he-IL') : "---";
+            
+            list.innerHTML += `
+                <div class="item">
+                    <div class="item-info">
+                        <span class="item-date">${date}</span>
+                        <span class="item-desc">${t[1] || "ללא תיאור"}</span>
+                    </div>
+                    <span class="${amt >= 0 ? 'amount-pos' : 'amount-neg'}">${amt.toLocaleString()} ₪</span>
+                </div>`;
+        });
+    }
+    totalEl.innerText = total.toLocaleString() + " ₪";
+}
+
+// פונקציות ה-Modal וה-Alert נשארות כפי שהיו בקבצים הקודמים
 function openModal(type) {
     const modal = document.getElementById('action-modal');
     const title = document.getElementById('modal-title');
@@ -46,8 +96,6 @@ function openModal(type) {
             <input type="text" id="modal-desc" placeholder="תיאור">
         `;
         btn.onclick = () => submitAction(type);
-        btn.className = type === 'plus' ? 'btn-plus' : 'btn-minus';
-        btn.style.background = ""; // איפוס צבע
     } else if (type === 'password') {
         title.innerText = currentPassword ? "שינוי סיסמה" : "הגדרת סיסמה";
         body.innerHTML = `
@@ -55,9 +103,52 @@ function openModal(type) {
             <input type="password" id="new-p" placeholder="סיסמה חדשה">
         `;
         btn.onclick = updatePassword;
-        btn.className = 'btn-plus'; // כאן אנחנו מוודאים שהכפתור יהיה צבעוני ולא אפור
-        btn.style.background = "linear-gradient(to right, #0077be, #00a8cc)"; 
     }
 }
 
-// שאר הפונקציות (render, handleAuth, updatePassword) נשארות כפי שהיו
+function closeModal() {
+    document.getElementById('action-modal').style.display = 'none';
+    document.getElementById('main-wrapper').classList.remove('blur');
+}
+
+async function submitAction(type) {
+    const amt = document.getElementById('modal-amount').value;
+    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
+    if (!amt) return showAlert("נא להזין סכום");
+
+    closeModal();
+    showAlert("שומר נתונים...");
+    const finalAmt = type === 'plus' ? amt : -amt;
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "add", amount: finalAmt, desc: desc }) });
+    location.reload();
+}
+
+async function updatePassword() {
+    const newP = document.getElementById('new-p').value;
+    if (currentPassword) {
+        const oldP = document.getElementById('old-p').value;
+        if (oldP !== currentPassword) return showAlert("סיסמה נוכחית שגויה");
+    }
+    if (!newP) return showAlert("נא להזין סיסמה");
+
+    closeModal();
+    showAlert("מעדכן...");
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "setPassword", newPass: newP }) });
+    location.reload();
+}
+
+function showAlert(text) {
+    document.getElementById('alert-text').innerText = text;
+    document.getElementById('alert-overlay').style.display = 'flex';
+}
+
+function closeAlert() {
+    document.getElementById('alert-overlay').style.display = 'none';
+}
+
+function logout() {
+    sessionStorage.removeItem('isLoggedIn');
+    location.reload();
+}
+
+init();
