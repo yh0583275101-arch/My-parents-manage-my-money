@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול תקציב אישי</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="auth-screen" class="screen">
+        <div class="card">
+            <h2 id="auth-title">כניסה למערכת</h2>
+            <input type="password" id="password-input" placeholder="הכנס סיסמה">
+            <button onclick="handleAuth()">כניסה</button>
+            <p id="error-msg" class="error"></p>
+        </div>
+    </div>
+
+    <div id="main-screen" class="screen" style="display: none;">
+        <header>
+            <div class="balance-card">
+                <h2>יתרה נוכחית</h2>
+                <div id="total-balance" class="amount">0 ₪</div>
+            </div>
+        </header>
+
+        <div class="layout">
+            <section class="history">
+                <h3>היסטוריית תנועות</h3>
+                <div id="transactions-list"></div>
+            </section>
+
+            <aside class="actions">
+                <div class="card">
+                    <h3>פעולה חדשה</h3>
+                    <input type="number" id="amount" placeholder="סכום (₪)">
+                    <input type="text" id="description" placeholder="תיאור (אופציונלי)">
+                    <div class="btn-group">
+                        <button class="btn-plus" onclick="submitTransaction('plus')">הוספה (+)</button>
+                        <button class="btn-minus" onclick="submitTransaction('minus')">הורדה (-)</button>
+                    </div>
+                </div>
+                <div class="card mini">
+                    <button class="secondary" onclick="exportToExcel()">הורדה לאקסל</button>
+                    <button class="secondary" onclick="resetPasswordAction()">שינוי סיסמה</button>
+                </div>
+            </aside>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
