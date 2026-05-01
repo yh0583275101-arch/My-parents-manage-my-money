@@ -3,60 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול תקציב משפחתי</title>
+    <title>ניהול כספים מודרני</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="main-wrapper">
+        <!-- תפריט כפתורים שמאלי - רשימה יורדת -->
+        <div class="side-menu" id="side-menu" style="display: none;">
+            <button class="btn-plus" onclick="openModal('plus')">הוספת כסף (+)</button>
+            <button class="btn-minus" onclick="openModal('minus')">הורדת כסף (-)</button>
+            <button class="secondary" onclick="openModal('password')">שינוי סיסמה</button>
+            <button class="secondary" onclick="exportToExcel()">הורדה לאקסל</button>
+            <button class="secondary" onclick="logout()">יציאה</button>
+        </div>
+
+        <div id="main-content" class="dashboard" style="display: none;">
+            <div class="history-container">
+                <h2 style="text-align: center; margin-bottom: 25px;">פעולות אחרונות</h2>
+                <div id="transactions-list" class="bank-list"></div>
+            </div>
+
+            <div class="balance-container">
+                <span class="balance-label">יתרה נוכחית</span>
+                <span id="total-balance" class="balance-value">0 ₪</span>
+            </div>
+        </div>
+
         <!-- מסך כניסה -->
         <div id="auth-screen" class="overlay">
             <div class="modal">
-                <h2>כניסה למערכת</h2>
+                <h2 id="auth-title" style="margin-bottom: 20px;">שלום!</h2>
                 <input type="password" id="password-input" placeholder="הכנס סיסמה">
-                <button onclick="handleAuth()">כניסה</button>
-            </div>
-        </div>
-
-        <!-- המסך הראשי -->
-        <div id="main-content" style="display: none;">
-            <div class="side-menu">
-                <button class="btn-plus" onclick="openModal('plus')">הוספת כסף (+)</button>
-                <button class="btn-minus" onclick="openModal('minus')">הורדת כסף (-)</button>
-                <button class="secondary" onclick="openModal('password')">שינוי סיסמה</button>
-                <button class="secondary" onclick="exportToExcel()">הורדה לאקסל</button>
-                <button class="secondary" onclick="logout()">יציאה</button>
-            </div>
-
-            <div class="dashboard">
-                <div class="history-container">
-                    <h3>היסטוריית פעולות</h3>
-                    <div id="transactions-list" class="bank-list"></div>
-                </div>
-                <div class="balance-container">
-                    <span class="balance-label">יתרה עד עכשיו:</span>
-                    <span id="total-balance" class="balance-value">0 ₪</span>
-                </div>
+                <button class="btn-plus" style="width: 100%;" onclick="handleAuth()">כניסה</button>
             </div>
         </div>
     </div>
 
-    <!-- חלון הזנה מודאלי -->
-    <div id="action-modal" class="overlay" style="display: none;" onclick="checkClose(event)">
+    <!-- חלון פעולות קופץ -->
+    <div id="action-modal" class="overlay" style="display: none;" onclick="closeModal()">
         <div class="modal" onclick="event.stopPropagation()">
             <h2 id="modal-title">פעולה</h2>
             <div id="modal-body"></div>
-            <div class="btn-group">
-                <button id="modal-confirm-btn">אישור</button>
-                <button onclick="closeModal()" class="secondary">ביטול</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="modal-confirm-btn" style="flex: 1;">אישור</button>
+                <button class="secondary" style="flex: 1;" onclick="closeModal()">ביטול</button>
             </div>
         </div>
     </div>
 
-    <!-- מערכת התראות מעוצבת (במקום כרום) -->
+    <!-- התראה מעוצבת -->
     <div id="alert-overlay" class="overlay" style="display: none;">
-        <div class="modal mini-modal">
-            <p id="alert-text"></p>
-            <button onclick="closeAlert()">הבנתי</button>
+        <div class="modal" style="width: 250px;">
+            <p id="alert-text" style="font-weight: 600;"></p>
+            <button class="btn-plus" style="width: 100%; margin-top: 15px;" onclick="closeAlert()">הבנתי</button>
         </div>
     </div>
 
