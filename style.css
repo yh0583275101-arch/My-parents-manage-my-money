@@ -1,36 +1,23 @@
-:root {
-    --bg-color: #f0f2f5;
-    --primary: #2c3e50;
-    --success: #27ae60;
-    --danger: #e74c3c;
-    --glass: rgba(255, 255, 255, 0.8);
+body { background: #f0f2f5; margin: 0; font-family: sans-serif; direction: rtl; }
+.blur { filter: blur(10px); }
+
+/* יתרה למטה בצד ימין ללא רקע */
+.balance-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    color: #2c3e50;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
+.balance-value { font-size: 3.5rem; font-weight: bold; display: block; }
 
-body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-color); color: var(--primary); height: 100vh; overflow: hidden; }
+/* התראות מעוצבות */
+.mini-modal { max-width: 300px !important; border-top: 5px solid #2c3e50; }
+.overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
 
-/* טשטוש הרקע כשהחלון פתוח */
-.blur { filter: blur(8px); pointer-events: none; }
-
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-
-.modal { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 90%; max-width: 400px; text-align: center; }
-
-.side-menu { position: fixed; top: 20px; left: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
-.side-menu button { padding: 12px 20px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; width: 150px; }
-
-.dashboard { display: flex; height: 100vh; padding: 80px 20px 20px 20px; box-sizing: border-box; }
-
-.history-container { flex: 1; margin-left: 200px; background: white; border-radius: 15px; padding: 20px; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-
-.balance-container { position: fixed; bottom: 30px; right: 30px; text-align: right; }
-.balance-value { font-size: 3rem; font-weight: bold; display: block; }
-
-.bank-list .item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #eee; }
-.item .amount-pos { color: var(--success); font-weight: bold; }
-.item .amount-neg { color: var(--danger); font-weight: bold; }
-
-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-button:hover { opacity: 0.8; transform: translateY(-2px); }
-
-/* הודעות Toast */
-.toast { position: fixed; top: 20px; right: 50%; transform: translateX(50%); background: var(--primary); color: white; padding: 15px 30px; border-radius: 50px; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+/* רשימה בצד שמאל כמו בבנק */
+.history-container {
+    margin-left: 200px;
+    width: 60%;
+    padding: 20px;
+}
