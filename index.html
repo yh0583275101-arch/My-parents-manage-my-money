@@ -11,16 +11,14 @@
         <!-- מסך כניסה -->
         <div id="auth-screen" class="overlay">
             <div class="modal">
-                <h2 id="auth-title">כניסה למערכת</h2>
+                <h2>כניסה למערכת</h2>
                 <input type="password" id="password-input" placeholder="הכנס סיסמה">
                 <button onclick="handleAuth()">כניסה</button>
-                <div id="auth-msg" class="custom-alert"></div>
             </div>
         </div>
 
         <!-- המסך הראשי -->
         <div id="main-content" style="display: none;">
-            <!-- כפתורי ניהול בצד שמאל למעלה -->
             <div class="side-menu">
                 <button class="btn-plus" onclick="openModal('plus')">הוספת כסף (+)</button>
                 <button class="btn-minus" onclick="openModal('minus')">הורדת כסף (-)</button>
@@ -30,38 +28,37 @@
             </div>
 
             <div class="dashboard">
-                <!-- יתרה למטה בצד ימין -->
+                <div class="history-container">
+                    <h3>היסטוריית פעולות</h3>
+                    <div id="transactions-list" class="bank-list"></div>
+                </div>
                 <div class="balance-container">
                     <span class="balance-label">יתרה עד עכשיו:</span>
                     <span id="total-balance" class="balance-value">0 ₪</span>
-                </div>
-
-                <!-- רשימת תנועות בצד שמאל (גדול) -->
-                <div class="history-container">
-                    <h3>היסטוריית פעולות (כמו בבנק)</h3>
-                    <div id="transactions-list" class="bank-list"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- חלון הזנה (פלוס/מינוס/שינוי סיסמה) -->
-    <div id="action-modal" class="overlay" style="display: none;">
-        <div class="modal">
+    <!-- חלון הזנה מודאלי -->
+    <div id="action-modal" class="overlay" style="display: none;" onclick="checkClose(event)">
+        <div class="modal" onclick="event.stopPropagation()">
             <h2 id="modal-title">פעולה</h2>
-            <div id="modal-body">
-                <input type="number" id="modal-amount" placeholder="סכום">
-                <input type="text" id="modal-desc" placeholder="תיאור (למה?)">
-            </div>
+            <div id="modal-body"></div>
             <div class="btn-group">
-                <button id="modal-confirm-btn" class="btn-plus">אישור</button>
+                <button id="modal-confirm-btn">אישור</button>
                 <button onclick="closeModal()" class="secondary">ביטול</button>
             </div>
         </div>
     </div>
 
-    <!-- הודעות מערכת מעוצבות -->
-    <div id="custom-toast" class="toast"></div>
+    <!-- מערכת התראות מעוצבת (במקום כרום) -->
+    <div id="alert-overlay" class="overlay" style="display: none;">
+        <div class="modal mini-modal">
+            <p id="alert-text"></p>
+            <button onclick="closeAlert()">הבנתי</button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
