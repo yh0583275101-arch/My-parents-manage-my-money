@@ -1,18 +1,13 @@
-/* הגדרת משתני צבעים לפי הבקשה */
 :root {
-    /* כחול ים בולט עם נגיעות סגול ורדרד */
-    --sea-dominant: linear-gradient(135deg, #0077be 70%, #a29bfe 100%);
-    /* סגול ורדרד בולט עם נגיעות כחול ים */
-    --purple-dominant: linear-gradient(135deg, #a29bfe 60%, #fd79a8 85%, #0077be 100%);
-    
-    --text-white: #ffffff;
-    --glass-effect: rgba(255, 255, 255, 0.1);
+    /* צבעים בסיסיים */
+    --sea-blue: #0077be;
+    --purple-pink: #a29bfe;
+    --hot-pink: #fd79a8;
 }
 
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: var(--sea-dominant); /* רקע כללי כחול ים */
     height: 100vh;
     width: 100vw;
     display: flex;
@@ -26,119 +21,115 @@ body {
     height: 100%;
 }
 
-/* צד ימין - אזור הכפתורים והיתרה */
+/* צד ימין: חלק הכפתורים - בעיקר סגול ורדרד עם כתמי כחול ים מטושטשים */
 .side-menu {
-    width: 250px;
-    background: var(--purple-dominant); /* סגול ורדרד בולט */
+    width: 300px;
+    height: 100%;
+    background: var(--purple-pink);
+    /* אפקט כתמים מרוחים */
+    background-image: 
+        radial-gradient(at 20% 30%, var(--sea-blue) 0px, transparent 50%),
+        radial-gradient(at 80% 70%, var(--sea-blue) 0px, transparent 50%);
     display: flex;
     flex-direction: column;
-    padding: 40px 20px;
-    box-shadow: -5px 0 20px rgba(0,0,0,0.2);
-    z-index: 10;
-    justify-content: flex-start;
+    padding: 60px 30px;
+    box-sizing: border-box;
     position: relative;
 }
 
-/* רשימת כפתורים יורדת בצד ימין */
+/* ריווח בין כפתורים */
 .buttons-list {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    margin-top: 20px;
+    gap: 30px; /* מרווח גדול יותר בין הכפתורים */
 }
 
-button {
+/* כפתורים ויתרה בצבעי החלק השמאלי (כחול ים עם כתמי סגול) */
+button, .balance-value {
+    background: var(--sea-blue);
+    background-image: radial-gradient(at 50% 50%, var(--purple-pink) 0px, transparent 100%);
     border: none;
     border-radius: 50px;
-    padding: 15px;
+    padding: 18px;
+    color: white;
     font-weight: bold;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     cursor: pointer;
     transition: 0.3s;
-    /* כפתורים בצבעי כחול ים מעורבב עם סגול */
-    background: var(--sea-dominant);
-    color: white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     font-size: 16px;
+    text-align: center;
 }
 
 button:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 25px rgba(0,0,0,0.2);
 }
 
-/* אזור היתרה - בתחתית צד ימין */
+/* היתרה בעמודה של הכפתורים למטה */
 .balance-container {
-    position: absolute;
-    bottom: 40px;
-    right: 20px;
-    left: 20px;
+    margin-top: auto;
     text-align: center;
     color: white;
 }
 
-.balance-label { font-size: 1rem; opacity: 0.9; }
-.balance-value { 
-    font-size: 3rem; 
-    font-weight: 900; 
-    /* יתרה בצבעי כחול ים עם גווני סגול ורדרד */
-    background: var(--sea-dominant);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+.balance-label {
     display: block;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    opacity: 0.9;
 }
 
-/* צד שמאל - פעולות אחרונות */
+.balance-value {
+    display: inline-block;
+    width: 100%;
+    font-size: 2.5rem;
+    padding: 15px 0;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: white;
+}
+
+/* צד שמאל: פעולות אחרונות - כחול ים עם כתמי סגול מרוחים */
 .dashboard {
     flex: 1;
-    background: var(--sea-dominant); /* כחול ים עם גווני ורוד */
-    padding: 40px;
-    display: flex;
-    justify-content: center;
+    background: var(--sea-blue);
+    background-image: 
+        radial-gradient(at 10% 10%, var(--purple-pink) 0px, transparent 40%),
+        radial-gradient(at 90% 90%, var(--hot-pink) 0px, transparent 40%),
+        radial-gradient(at 50% 50%, var(--purple-pink) 0px, transparent 50%);
+    padding: 60px;
+    overflow-y: auto;
 }
 
+/* רשימה ללא גבול תוחם - האותיות בניגוד לרקע */
 .history-container {
     width: 100%;
-    max-width: 900px;
-    background: rgba(255, 255, 255, 0.15); /* מראה זכוכית על הרקע הכחול */
-    backdrop-filter: blur(15px);
-    border-radius: 40px;
-    padding: 30px;
-    height: 80vh;
-    overflow-y: auto;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    background: transparent; /* ללא רקע תוחם */
 }
 
 .history-container h2 {
     color: white;
-    text-align: center;
-    margin-bottom: 30px;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
 .bank-list .item {
-    background: white;
-    margin-bottom: 15px;
-    padding: 20px;
-    border-radius: 20px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    padding: 25px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* קו דק מאוד להפרדה */
+    color: white; /* צבע מנוגד לרקע */
 }
 
-/* חלונות קופצים */
-.modal {
-    background: white;
-    border-radius: 35px;
-    padding: 40px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-}
+.item-desc { font-size: 1.3rem; font-weight: 500; }
+.item-date { opacity: 0.7; margin-bottom: 5px; display: block; }
 
-#modal-confirm-btn {
-    background: var(--sea-dominant) !important;
-}
+/* צבעי סכומים מודגשים על הרקע הכהה */
+.amount-pos { color: #55efc4; font-weight: bold; font-size: 1.4rem; }
+.amount-neg { color: #fab1a0; font-weight: bold; font-size: 1.4rem; }
 
-/* התאמת צבעים לתנועות */
-.amount-pos { color: #0077be; font-weight: 800; }
-.amount-neg { color: #fd79a8; font-weight: 800; }
+/* חלונות קופצים - נשארים נקיים */
+/* .overlay { */
+   /* backdrop-filter: blur(20px);
+ /*   background: rgba(0,0,0,0.3);
+/*}*/
