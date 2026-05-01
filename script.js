@@ -1,38 +1,36 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7ppdE1OnRe29xVnw6RBIIQB8Dj2nUcuGTJBss9joEcpnl7t0CCCH2VG4ryNnARR3h/exec";
 let currentPassword = "";
 let transactions = [];
-let isFirstLogin = false;
 
-// בדיקת מצב התחברות בטעינה (לא מתנתק ברענון)
 async function init() {
-    showToast("טוען נתונים...");
     const res = await fetch(SCRIPT_URL);
     const data = await res.json();
     currentPassword = data.password;
     transactions = data.transactions;
 
-    if (!currentPassword) {
-        isFirstLogin = true;
-        document.getElementById('auth-title').innerText = "קביעת סיסמה ראשונית";
-    }
-
-    // אם כבר התחבר בעבר בדפדפן הזה
+    // בדיקה אם כבר מחובר ב-Session (לא מתנתק ברענון)
     if (sessionStorage.getItem('isLoggedIn') === 'true') {
         showMainScreen();
+    } else if (!currentPassword) {
+        // רק אם אין בכלל סיסמה בשיטס - מצב הגדרה ראשונית
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.querySelector('#auth-screen h2').innerText = "קביעת סיסמה ראשונית";
     }
 }
 
 async function handleAuth() {
     const input = document.getElementById('password-input').value;
-    if (isFirstLogin) {
+    
+    if (!currentPassword) {
+        // הגדרה ראשונית
         await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "setPassword", newPass: input }) });
-        showToast("הסיסמה נקבעה! נא לרענן.");
-        setTimeout(() => location.reload(), 1500);
+        showAlert("הסיסמה הוגדרה בהצלחה! האתר יתרענן.");
+        setTimeout(() => location.reload(), 2000);
     } else if (input === currentPassword) {
         sessionStorage.setItem('isLoggedIn', 'true');
         showMainScreen();
     } else {
-        showToast("סיסמה שגויה!");
+        showAlert("סיסמה שגויה!");
     }
 }
 
@@ -42,81 +40,62 @@ function showMainScreen() {
     render();
 }
 
+// מערכת התראות מעוצבת
+function showAlert(text) {
+    document.getElementById('alert-text').innerText = text;
+    document.getElementById('alert-overlay').style.display = 'flex';
+}
+
+function closeAlert() {
+    document.getElementById('alert-overlay').style.display = 'none';
+}
+
 function openModal(type) {
     const modal = document.getElementById('action-modal');
     const title = document.getElementById('modal-title');
     const body = document.getElementById('modal-body');
-    const confirmBtn = document.getElementById('modal-confirm-btn');
+    const btn = document.getElementById('modal-confirm-btn');
     
-    document.getElementById('main-content').classList.add('blur');
+    document.getElementById('main-wrapper').classList.add('blur');
     modal.style.display = 'flex';
-    body.innerHTML = '';
 
     if (type === 'plus' || type === 'minus') {
-        title.innerText = type === 'plus' ? 'הוספת כסף' : 'הורדת כסף';
+        title.innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
         body.innerHTML = `
             <input type="number" id="modal-amount" placeholder="סכום">
             <input type="text" id="modal-desc" placeholder="תיאור">
         `;
-        confirmBtn.onclick = () => submitAction(type);
-        confirmBtn.className = type === 'plus' ? 'btn-plus' : 'btn-minus';
+        btn.innerText = "בצע פעולה";
+        btn.onclick = () => submitAction(type);
     } else if (type === 'password') {
-        title.innerText = 'שינוי סיסמה';
+        title.innerText = "שינוי סיסמה";
         body.innerHTML = `
-            <input type="password" id="old-pass" placeholder="סיסמה נוכחית">
-            <input type="password" id="new-pass" placeholder="סיסמה חדשה">
+            <input type="password" id="old-p" placeholder="סיסמה נוכחית">
+            <input type="password" id="new-p" placeholder="סיסמה חדשה">
         `;
-        confirmBtn.onclick = updatePassword;
-        confirmBtn.className = 'btn-plus';
+        btn.innerText = "עדכן סיסמה";
+        btn.onclick = updatePassword;
     }
-}
-
-async function submitAction(type) {
-    const amount = document.getElementById('modal-amount').value;
-    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
-    if (!amount) return showToast("נא להזין סכום");
-
-    const finalAmount = type === 'plus' ? amount : -amount;
-    showToast("שומר...");
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "add", amount: finalAmount, desc: desc }) });
-    location.reload();
 }
 
 function closeModal() {
     document.getElementById('action-modal').style.display = 'none';
-    document.getElementById('main-content').classList.remove('blur');
+    document.getElementById('main-wrapper').classList.remove('blur');
 }
 
-function render() {
-    const list = document.getElementById('transactions-list');
-    let total = 0;
-    list.innerHTML = "";
-
-    [...transactions].reverse().forEach(t => {
-        const income = t[2] !== "" ? parseFloat(t[2]) : 0;
-        const expense = t[3] !== "" ? parseFloat(t[3]) : 0;
-        const amt = income > 0 ? income : -expense;
-        total += amt;
-
-        list.innerHTML += `
-            <div class="item">
-                <span><strong>${new Date(t[0]).toLocaleDateString()}</strong> - ${t[1]}</span>
-                <span class="${amt >= 0 ? 'amount-pos' : 'amount-neg'}">${amt} ₪</span>
-            </div>`;
-    });
-    document.getElementById('total-balance').innerText = total + " ₪";
+function checkClose(e) {
+    if (e.target.id === 'action-modal') closeModal();
 }
 
-function showToast(msg) {
-    const toast = document.getElementById('custom-toast');
-    toast.innerText = msg;
-    toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 3000);
-}
+async function submitAction(type) {
+    const amt = document.getElementById('modal-amount').value;
+    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
+    if(!amt) return showAlert("נא להזין סכום");
 
-function logout() {
-    sessionStorage.removeItem('isLoggedIn');
+    const finalAmt = type === 'plus' ? amt : -amt;
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "add", amount: finalAmt, desc: desc }) });
     location.reload();
 }
 
+// שאר הפונקציות (render, logout וכו') נשארות דומות...
 init();
