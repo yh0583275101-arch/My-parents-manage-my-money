@@ -1,23 +1,145 @@
-body { background: #f0f2f5; margin: 0; font-family: sans-serif; direction: rtl; }
-.blur { filter: blur(10px); }
+:root {
+    --bg-gradient: linear-gradient(135deg, #e0f2f1 0%, #f3e5f5 100%);
+    --sea-blue: #0077be;
+    --ocean-blue: #00a8cc;
+    --purple-pink: #a29bfe;
+    --hot-pink: #fd79a8;
+    --text-color: #2d3436;
+    --glass: rgba(255, 255, 255, 0.7);
+}
 
-/* יתרה למטה בצד ימין ללא רקע */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-color);
+    height: 100vh;
+    overflow: hidden;
+    direction: rtl;
+}
+
+#main-wrapper {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* תפריט צד שמאל - רשימה יורדת */
+.side-menu {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 100;
+}
+
+button {
+    border: none;
+    border-radius: 50px; /* בועה עגולה */
+    padding: 12px 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-size: 15px;
+    color: white;
+}
+
+.btn-plus { background: linear-gradient(to right, var(--sea-blue), var(--ocean-blue)); }
+.btn-minus { background: linear-gradient(to right, var(--hot-pink), var(--purple-pink)); }
+.secondary { background: var(--glass); color: var(--text-color); backdrop-filter: blur(5px); }
+
+button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* אזור היתרה - למטה בצד ימין */
 .balance-container {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
-    color: #2c3e50;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    bottom: 40px;
+    right: 40px;
+    text-align: right;
+    pointer-events: none;
 }
-.balance-value { font-size: 3.5rem; font-weight: bold; display: block; }
 
-/* התראות מעוצבות */
-.mini-modal { max-width: 300px !important; border-top: 5px solid #2c3e50; }
-.overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+.balance-label { font-size: 1.2rem; opacity: 0.8; }
+.balance-value { 
+    font-size: 4rem; 
+    font-weight: 900; 
+    display: block;
+    background: linear-gradient(45deg, var(--sea-blue), var(--hot-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-/* רשימה בצד שמאל כמו בבנק */
+/* רשימת תנועות - מרכז המסך */
+.dashboard {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
 .history-container {
-    margin-left: 200px;
-    width: 60%;
-    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    height: 70vh;
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    border-radius: 30px;
+    padding: 30px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    overflow-y: auto;
 }
+
+.bank-list .item {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.item:hover { background: white; }
+
+/* חלונות קופצים וטשטוש */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: white;
+    padding: 40px;
+    border-radius: 35px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+}
+
+.blur { filter: blur(15px); }
+
+input {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    border: 2px solid #eee;
+    border-radius: 20px;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus { border-color: var(--ocean-blue); }
