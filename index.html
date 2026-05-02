@@ -2,45 +2,51 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ניהול תקציב</title>
+    <title>ניהול כספים אישי</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="main-wrapper">
-        <div class="side-menu" id="side-menu">
-            <h2 style="text-align: center; margin-bottom: 30px;">תפריט</h2>
+        <div class="side-menu" id="side-menu" style="display: none;">
             <div class="buttons-list">
                 <button class="btn-plus" onclick="openModal('plus')">הוספת כסף (+)</button>
                 <button class="btn-minus" onclick="openModal('minus')">הורדת כסף (-)</button>
-                <button class="secondary" onclick="openModal('password')">שינוי סיסמה</button>
-                <button class="secondary" onclick="exportToExcel()">הורדה לאקסל</button>
-                <button class="secondary" onclick="logout()">יציאה</button>
+                <button class="btn-secondary" onclick="exportToExcel()">הורדה לאקסל</button>
+                <button class="btn-secondary" onclick="logout()">יציאה</button>
             </div>
-            <div class="balance-container">
-                <small>יתרה נוכחית</small>
-                <span id="total-balance" class="balance-value">0 ₪</span>
+            <div class="balance-box">
+                <span class="label">יתרה נוכחית:</span>
+                <span id="total-balance" class="value">0 ₪</span>
             </div>
         </div>
 
-        <div id="main-content" class="dashboard">
-            <div class="history-container">
-                <h2 style="margin-top: 0; border-bottom: 2px solid #f8f9fa; padding-bottom: 15px;">פעולות אחרונות</h2>
+        <div id="main-content" class="dashboard" style="display: none;">
+            <div class="history-card">
+                <h2>פעולות אחרונות</h2>
                 <div id="transactions-list"></div>
             </div>
         </div>
 
-        <!-- מודאל פעולות -->
-        <div id="action-modal" class="overlay">
+        <div id="auth-screen" class="overlay" style="display: none;">
             <div class="modal">
-                <h3 id="modal-title">פעולה</h3>
-                <div id="modal-body"></div>
-                <div style="display: flex; gap: 10px; margin-top: 25px;">
-                    <button id="modal-confirm-btn" style="flex: 1;">אישור</button>
-                    <button class="secondary" style="flex: 1;" onclick="closeModal()">ביטול</button>
-                </div>
+                <h2>כניסה</h2>
+                <input type="password" id="password-input" placeholder="הכנס סיסמה">
+                <button class="btn-plus" style="width:100%" onclick="handleAuth()">כניסה</button>
             </div>
         </div>
     </div>
+
+    <div id="action-modal" class="overlay" style="display: none;">
+        <div class="modal">
+            <h2 id="modal-title">פעולה</h2>
+            <div id="modal-body"></div>
+            <div class="modal-footer">
+                <button id="modal-confirm-btn">אישור</button>
+                <button class="btn-secondary" onclick="closeModal()">ביטול</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
