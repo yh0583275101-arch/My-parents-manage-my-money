@@ -1,8 +1,8 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7ppdE1OnRe29xVnw6RBIIQB8Dj2nUcuGTJBss9joEcpnl7t0CCCH2VG4ryNnARR3h/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxg7mcXrDhZt6XdlBZz6rV-gsKhNL0627BaXEooUm-ejag7FifNkYNFrJkTOY7pZykE/exec";
 let transactions = [];
 let appPassword = "";
 
-// חלון קופץ מעוצב
+// חלון התראות מעוצב
 function showCustomAlert(title, message) {
     let existingAlert = document.getElementById('custom-alert-box');
     if (existingAlert) existingAlert.remove();
@@ -19,29 +19,24 @@ function showCustomAlert(title, message) {
     document.body.insertAdjacentHTML('beforeend', alertHTML);
 }
 
+// אתחול
 async function init() {
     try {
         const res = await fetch(SCRIPT_URL);
         const data = await res.json();
         transactions = data.transactions || [];
         appPassword = data.password || ""; 
-        
         render();
         document.getElementById('auth-screen').style.display = 'flex';
     } catch (e) { 
-        console.error("Error init", e); 
-        showCustomAlert("שגיאת תקשורת", "יש בעיה בטעינת הנתונים, אנא רענן את העמוד.");
+        showCustomAlert("שגיאת תקשורת", "יש בעיה בטעינת הנתונים.");
     }
 }
 
+// כניסה
 function handleAuth() {
     const passInput = document.getElementById('password-input').value.trim();
     const correctPassword = String(appPassword).trim();
-
-    // -- כלי לבדיקת תקלות --
-    // לחץ F12 בדפדפן, עבור ללשונית Console ותראה בדיוק למה הוא לא מכניס אותך
-    console.log("מה שהקלדת:", passInput);
-    console.log("הסיסמה שהגיעה מגוגל:", correctPassword);
 
     if (passInput === correctPassword && correctPassword !== "") {
         document.getElementById('auth-screen').style.display = 'none';
@@ -59,6 +54,7 @@ function logout() {
     document.getElementById('auth-screen').style.display = 'flex';
 }
 
+// תצוגה
 function render() {
     const list = document.getElementById('transactions-list');
     const totalEl = document.getElementById('total-balance');
@@ -67,30 +63,22 @@ function render() {
     let total = 0;
     list.innerHTML = "";
 
+    // חישוב יתרה כוללת (פלוס ומינוס מאותה עמודה)
     transactions.forEach(t => {
-        let rawInc = parseFloat(t[2]) || 0;
-        let rawExp = parseFloat(t[3]) || 0;
-        
-        if (rawInc < 0) {
-            rawExp += Math.abs(rawInc);
-            rawInc = 0;
-        }
-        
-        total += (rawInc - rawExp);
+        let amtC = parseFloat(t[2]) || 0; 
+        let amtD = parseFloat(t[3]) || 0; // למקרה שיש נתונים ישנים בעמודה ד'
+        total += (amtC - Math.abs(amtD));
     });
 
     const sortedData = [...transactions].sort((a, b) => new Date(b[0]) - new Date(a[0]));
 
     sortedData.forEach(t => {
-        let rawInc = parseFloat(t[2]) || 0;
-        let rawExp = parseFloat(t[3]) || 0;
+        let amtC = parseFloat(t[2]) || 0;
+        let amtD = parseFloat(t[3]) || 0;
         
-        if (rawInc < 0) {
-            rawExp += Math.abs(rawInc);
-            rawInc = 0;
-        }
+        let netAmount = amtC - Math.abs(amtD);
 
-        if (rawInc === 0 && rawExp === 0) return;
+        if (netAmount === 0 && amtC === 0 && amtD === 0) return;
 
         const dateStr = t[0] ? new Date(t[0]).toLocaleString('he-IL', {
             day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -98,11 +86,11 @@ function render() {
 
         let amtStr, colorClass;
 
-        if (rawInc > 0) {
-            amtStr = `+ ${rawInc.toLocaleString()} ₪`;
+        if (netAmount > 0) {
+            amtStr = `+ ${netAmount.toLocaleString()} ₪`;
             colorClass = "amount-pos";
         } else {
-            amtStr = `- ${rawExp.toLocaleString()} ₪`;
+            amtStr = `- ${Math.abs(netAmount).toLocaleString()} ₪`;
             colorClass = "amount-neg";
         }
 
@@ -119,34 +107,14 @@ function render() {
     totalEl.innerText = total.toLocaleString() + " ₪";
 }
 
-function exportToExcel() {
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-    csvContent += "תאריך,תיאור,הכנסה,הוצאה\n";
-    
-    transactions.forEach(t => {
-        let date = t[0] ? new Date(t[0]).toLocaleString('he-IL') : "";
-        let desc = t[1] || "";
-        let inc = t[2] || "";
-        let exp = t[3] || "";
-        csvContent += `${date},${desc},${inc},${exp}\n`;
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "ניהול_כספים.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
+// הורדה / הוספה
 async function submitAction(type) {
     const amtInput = document.getElementById('modal-amount').value;
     const desc = document.getElementById('modal-desc').value || "ללא תיאור";
     
     let amt = Math.abs(parseFloat(amtInput));
     if (isNaN(amt) || amt === 0) {
-        showCustomAlert("שגיאה בהזנה", "חובה להזין סכום תקין הגדול מ-0.");
+        showCustomAlert("שגיאה בהזנה", "חובה להזין סכום תקין.");
         return;
     }
 
@@ -160,14 +128,55 @@ async function submitAction(type) {
     });
     
     const now = new Date().toISOString();
-    if (type === 'plus') {
-        transactions.push([now, desc, amt, ""]);
-    } else {
-        transactions.push([now, desc, "", amt]);
-    }
-    render();
+    // עדכון מקומי מהיר וזמני
+    let tempAmt = (type === 'plus') ? amt : -amt;
+    transactions.push([now, desc, tempAmt, ""]);
     
+    render();
     setTimeout(refreshData, 2000);
+}
+
+// אקסל
+function exportToExcel() {
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+    csvContent += "תאריך,תיאור,הכנסה,הוצאה\n";
+    transactions.forEach(t => {
+        let date = t[0] ? new Date(t[0]).toLocaleString('he-IL') : "";
+        csvContent += `${date},${t[1] || ""},${t[2] || ""},${t[3] || ""}\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "ניהול_כספים.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// --- שינוי סיסמה ---
+function openPasswordModal() {
+    document.getElementById('new-password-input').value = "";
+    document.getElementById('password-modal').style.display = 'flex';
+}
+
+function closePasswordModal() { document.getElementById('password-modal').style.display = 'none'; }
+
+function submitNewPassword() {
+    const newPass = document.getElementById('new-password-input').value.trim();
+    if (!newPass) {
+        showCustomAlert("שגיאה", "אנא הזן סיסמה חדשה.");
+        return;
+    }
+    closePasswordModal();
+    appPassword = newPass;
+
+    fetch(SCRIPT_URL, { 
+        method: 'POST', 
+        mode: 'no-cors',
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "change_password", newPassword: newPass }) 
+    });
+    showCustomAlert("הצלחה", "הסיסמה שונתה בהצלחה בגוגל שיטס!");
 }
 
 async function refreshData() {
@@ -176,7 +185,7 @@ async function refreshData() {
         const data = await res.json();
         transactions = data.transactions || [];
         render();
-    } catch (e) { console.error("Error refresh", e); }
+    } catch (e) {}
 }
 
 function openModal(type) {
