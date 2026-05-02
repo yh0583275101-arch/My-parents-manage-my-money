@@ -1,127 +1,83 @@
-:root {
-    --main-bg: #f0f2f5;
-    --primary-blue: #1a73e8;
-    --text-dark: #202124;
-    --text-light: #ffffff;
-    --card-bg: #ffffff;
-    --success: #34a853;
-    --danger: #ea4335;
-}
-
-body {
-    margin: 0;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--main-bg);
-    color: var(--text-dark);
-    direction: rtl;
-    height: 100vh;
-    display: flex;
-    overflow: hidden;
-}
-
-#main-wrapper {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-/* עמודת כפתורים צפה */
-.side-menu {
-    width: 280px;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    background: transparent; /* צף על הרקע האחיד */
-    border-left: 1px solid rgba(0,0,0,0.05);
-}
-
-.buttons-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-/* כפתורים עם ניגודיות גבוהה */
-button {
-    border: none;
-    border-radius: 8px;
-    padding: 14px 20px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 15px;
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.btn-plus { background-color: var(--success); color: var(--text-light); }
-.btn-minus { background-color: var(--danger); color: var(--text-light); }
-.secondary { background-color: var(--white); color: var(--primary-blue); border: 1px solid var(--primary-blue); }
-
-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-button:active { transform: translateY(0); }
-
-/* חלק היתרה בעמודה */
-.balance-container {
-    margin-top: auto;
-    padding: 20px;
-    background: var(--card-bg);
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    text-align: center;
-}
-
-.balance-label { display: block; font-size: 0.9rem; margin-bottom: 8px; color: #5f6368; }
-.balance-value { font-size: 2rem; font-weight: bold; color: var(--primary-blue); }
-
-/* חלק הפעולות האחרונות שתופס את שאר המסך */
-.dashboard {
-    flex: 1;
-    padding: 40px;
-    overflow-y: auto;
-    display: flex;
-    justify-content: center;
-}
-
-.history-container {
-    width: 100%;
-    max-width: 800px;
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-}
-
-.bank-list .item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid #f1f3f4;
-}
-
-.amount-pos { color: var(--success); font-weight: bold; }
-.amount-neg { color: var(--danger); font-weight: bold; }
-
-/* חלונות קופצים */
+/* עיצוב חלונות קופצים (Modals) מודרני */
 .overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px); /* אפקט טשטוש יוקרתי */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 3000;
+    transition: all 0.3s ease;
 }
 
 .modal {
-    background: white;
-    padding: 32px;
-    border-radius: 12px;
-    width: 360px;
-    box-shadow: 0 24px 38px rgba(0,0,0,0.14);
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 24px;
+    width: 380px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    animation: modalSlideUp 0.4s ease-out;
 }
+
+@keyframes modalSlideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal h2 {
+    margin-top: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1f36;
+    margin-bottom: 25px;
+}
+
+.modal input {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    border: 2px solid #edf2f7;
+    border-radius: 12px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.modal input:focus {
+    border-color: #1a73e8;
+    outline: none;
+}
+
+/* כפתורים בתוך המודאל */
+.modal-footer {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+#modal-confirm-btn, .modal-cancel-btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+#modal-confirm-btn {
+    background: #1a73e8;
+    color: white;
+}
+
+#modal-confirm-btn:hover { background: #1557b0; }
+
+.modal-cancel-btn {
+    background: #f7fafc;
+    color: #4a5568;
+}
+
+.modal-cancel-btn:hover { background: #edf2f7; }
