@@ -2,9 +2,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7ppdE1OnRe29xVnw6R
 let transactions = [];
 let appPassword = "";
 
-// פונקציה ליצירת חלון קופץ מעוצב (מחליף את ה-alert הרגיל)
+// חלון קופץ מעוצב
 function showCustomAlert(title, message) {
-    // אם כבר יש חלון פתוח, נמחק אותו קודם
     let existingAlert = document.getElementById('custom-alert-box');
     if (existingAlert) existingAlert.remove();
 
@@ -17,11 +16,9 @@ function showCustomAlert(title, message) {
             </div>
         </div>
     `;
-    // הזרקת החלון המעוצב לתוך העמוד
     document.body.insertAdjacentHTML('beforeend', alertHTML);
 }
 
-// פונקציית האתחול - מביאה נתונים ומציגה את מסך הכניסה
 async function init() {
     try {
         const res = await fetch(SCRIPT_URL);
@@ -37,24 +34,24 @@ async function init() {
     }
 }
 
-// פונקציית התחברות עם בדיקת סיסמה מתוקנת!
 function handleAuth() {
     const passInput = document.getElementById('password-input').value.trim();
-    
-    // ממירים את הסיסמה מגוגל לטקסט וחותכים רווחים כדי למנוע שגיאות סוג
     const correctPassword = String(appPassword).trim();
+
+    // -- כלי לבדיקת תקלות --
+    // לחץ F12 בדפדפן, עבור ללשונית Console ותראה בדיוק למה הוא לא מכניס אותך
+    console.log("מה שהקלדת:", passInput);
+    console.log("הסיסמה שהגיעה מגוגל:", correctPassword);
 
     if (passInput === correctPassword && correctPassword !== "") {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('side-menu').style.display = 'flex';
         document.getElementById('main-content').style.display = 'flex';
     } else {
-        // קריאה לחלון המעוצב שלנו במקום alert של כרום
         showCustomAlert("שגיאה", "הסיסמה שהזנת שגויה, נסה שוב.");
     }
 }
 
-// פונקציית התנתקות
 function logout() {
     document.getElementById('password-input').value = "";
     document.getElementById('side-menu').style.display = 'none';
@@ -62,7 +59,6 @@ function logout() {
     document.getElementById('auth-screen').style.display = 'flex';
 }
 
-// פונקציית רינדור התצוגה והיתרה
 function render() {
     const list = document.getElementById('transactions-list');
     const totalEl = document.getElementById('total-balance');
@@ -163,4 +159,36 @@ async function submitAction(type) {
         body: JSON.stringify({ action: "add", type: type, amount: amt, desc: desc }) 
     });
     
-    const now = new Date().to
+    const now = new Date().toISOString();
+    if (type === 'plus') {
+        transactions.push([now, desc, amt, ""]);
+    } else {
+        transactions.push([now, desc, "", amt]);
+    }
+    render();
+    
+    setTimeout(refreshData, 2000);
+}
+
+async function refreshData() {
+    try {
+        const res = await fetch(SCRIPT_URL);
+        const data = await res.json();
+        transactions = data.transactions || [];
+        render();
+    } catch (e) { console.error("Error refresh", e); }
+}
+
+function openModal(type) {
+    const modal = document.getElementById('action-modal');
+    document.getElementById('modal-title').innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
+    document.getElementById('modal-body').innerHTML = `
+        <input type="number" id="modal-amount" placeholder="סכום (₪)" autofocus min="0">
+        <input type="text" id="modal-desc" placeholder="תיאור">`;
+    document.getElementById('modal-confirm-btn').onclick = () => submitAction(type);
+    modal.style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('action-modal').style.display = 'none'; }
+
+init();
