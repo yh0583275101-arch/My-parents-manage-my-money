@@ -2,7 +2,6 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7ppdE1OnRe29xVnw6R
 let currentPassword = "";
 let transactions = [];
 
-// פונקציית טעינה ראשונית
 async function init() {
     try {
         const res = await fetch(SCRIPT_URL);
@@ -20,7 +19,6 @@ async function init() {
     }
 }
 
-// רענון נתונים שקט ללא רענון דף
 async function refreshData() {
     try {
         const res = await fetch(SCRIPT_URL);
@@ -32,71 +30,11 @@ async function refreshData() {
     }
 }
 
-async function handleAuth() {
-    const input = document.getElementById('password-input').value;
-    if (input === currentPassword) {
-        sessionStorage.setItem('isLoggedIn', 'true');
-        showMainScreen();
-    } else {
-        alert("סיסמה שגויה!");
-    }
-}
-
 function showMainScreen() {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('side-menu').style.display = 'flex';
     document.getElementById('main-content').style.display = 'flex';
     render();
-}
-
-function openModal(type) {
-    const modal = document.getElementById('action-modal');
-    const title = document.getElementById('modal-title');
-    const body = document.getElementById('modal-body');
-    const btn = document.getElementById('modal-confirm-btn');
-
-    modal.style.display = 'flex';
-
-    if (type === 'plus' || type === 'minus') {
-        title.innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
-        body.innerHTML = `
-            <input type="number" id="modal-amount" placeholder="סכום (₪)" autofocus>
-            <input type="text" id="modal-desc" placeholder="תיאור">
-        `;
-        btn.onclick = () => submitAction(type);
-    } else if (type === 'password') {
-        title.innerText = "הגדרת סיסמה";
-        body.innerHTML = `<input type="password" id="new-p" placeholder="סיסמה חדשה">`;
-        btn.onclick = updatePassword;
-    }
-}
-
-function closeModal() {
-    document.getElementById('action-modal').style.display = 'none';
-}
-
-async function submitAction(type) {
-    const amtInput = document.getElementById('modal-amount').value;
-    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
-    if (!amtInput) return;
-
-    let amount = Math.abs(parseFloat(amtInput));
-    if (type === 'minus') amount = -amount;
-
-    closeModal();
-    
-    // שליחה שקטה ללא חלונית alert
-    try {
-        await fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify({ action: "add", amount: amount, desc: desc }) 
-        });
-        // עדכון הנתונים באתר אחרי שניה
-        setTimeout(refreshData, 1000);
-    } catch (e) {
-        console.error("שגיאה בשמירה:", e);
-    }
 }
 
 function render() {
@@ -112,13 +50,14 @@ function render() {
         total += amt;
 
         const date = t[0] ? new Date(t[0]).toLocaleDateString('he-IL') : "---";
+        // עיצוב טקסט מנוגד וברור ללא מסגרת
         list.innerHTML += `
-            <div class="item">
+            <div style="display: flex; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.05); color: #202124;">
                 <div>
-                    <div style="font-weight:600; color: #2d3436;">${t[1] || "ללא תיאור"}</div>
-                    <small style="color:#718096">${date}</small>
+                    <div style="font-weight: 600; font-size: 1.1rem;">${t[1] || "ללא תיאור"}</div>
+                    <small style="color: #5f6368;">${date}</small>
                 </div>
-                <div class="${amt >= 0 ? 'amount-pos' : 'amount-neg'}">
+                <div style="font-weight: bold; font-size: 1.2rem; color: ${amt >= 0 ? '#34a853' : '#ea4335'};">
                     ${amt >= 0 ? '+' : '-'}${Math.abs(amt).toLocaleString()} ₪
                 </div>
             </div>`;
@@ -126,22 +65,52 @@ function render() {
     totalEl.innerText = total.toLocaleString() + " ₪";
 }
 
-function exportToExcel() {
-    if (!transactions.length) return;
-    let csv = "\ufeffתאריך,תיאור,הכנסה,הוצאה\n";
-    transactions.forEach(t => {
-        csv += `${new Date(t[0]).toLocaleDateString('he-IL')},${t[1]},${t[2] || ""},${t[3] || ""}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'ניהול_כספים.csv';
-    a.click();
+async function submitAction(type) {
+    const amtInput = document.getElementById('modal-amount').value;
+    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
+    if (!amtInput) return;
+
+    let amount = Math.abs(parseFloat(amtInput));
+    if (type === 'minus') amount = -amount;
+
+    closeModal();
+    
+    try {
+        await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify({ action: "add", amount: amount, desc: desc }) 
+        });
+        // עדכון הנתונים באתר ללא רענון דף
+        setTimeout(refreshData, 1000);
+    } catch (e) {
+        console.error("שגיאה בשמירה:", e);
+    }
 }
 
-function logout() {
-    sessionStorage.removeItem('isLoggedIn');
-    location.reload();
+function openModal(type) {
+    const modal = document.getElementById('action-modal');
+    document.getElementById('modal-title').innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
+    document.getElementById('modal-body').innerHTML = `
+        <input type="number" id="modal-amount" placeholder="סכום (₪)" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px;">
+        <input type="text" id="modal-desc" placeholder="תיאור" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px;">
+    `;
+    document.getElementById('modal-confirm-btn').onclick = () => submitAction(type);
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('action-modal').style.display = 'none';
+}
+
+function handleAuth() {
+    const input = document.getElementById('password-input').value;
+    if (input === currentPassword) {
+        sessionStorage.setItem('isLoggedIn', 'true');
+        showMainScreen();
+    } else {
+        alert("סיסמה שגויה!");
+    }
 }
 
 init();
