@@ -1,107 +1,36 @@
-:root {
-    --bg-color: #f8f9fa;
-    --card-bg: #ffffff;
-    --primary-blue: #1a73e8;
-    --text-main: #202124;
-    --success: #34a853;
-    --danger: #ea4335;
-}
-
 body {
-    margin: 0;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    direction: rtl;
-    height: 100vh;
-    display: flex;
+    margin: 0; font-family: sans-serif; background: #f0f2f5; direction: rtl; height: 100vh;
 }
+#main-wrapper { display: flex; width: 100%; height: 100%; }
 
-#main-wrapper {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-/* עמודת כפתורים ימנית */
 .side-menu {
-    width: 280px;
-    padding: 40px 20px;
-    background: white;
-    border-left: 1px solid #e0e0e0;
-    display: none; /* יוצג דרך ה-JS */
-    flex-direction: column;
-    gap: 15px;
-    box-shadow: -2px 0 10px rgba(0,0,0,0.02);
+    width: 280px; background: white; padding: 30px; display: flex; flex-direction: column;
+    border-left: 2px solid #ddd; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
 
-.buttons-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+.buttons-list { display: flex; flex-direction: column; gap: 15px; }
 
 button {
-    border: none;
-    border-radius: 12px;
-    padding: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 15px;
-    transition: 0.2s;
+    padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;
+    font-size: 16px; transition: transform 0.1s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
+button:active { transform: translateY(2px); box-shadow: none; }
 
-.btn-plus { background: var(--success); color: white; }
-.btn-minus { background: var(--danger); color: white; }
-.secondary { background: #f1f3f4; color: var(--text-main); border: 1px solid #dadce0; }
+.btn-plus { background: #28a745; color: white; }
+.btn-minus { background: #dc3545; color: white; }
+.btn-secondary { background: #6c757d; color: white; }
 
-button:hover { filter: brightness(0.9); transform: translateY(-1px); }
+.balance-box { margin-top: auto; padding: 20px; background: #e9ecef; border-radius: 12px; text-align: center; }
+.balance-box .value { display: block; font-size: 28px; font-weight: 800; color: #007bff; }
 
-/* יתרה */
-.balance-container {
-    margin-top: auto;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 16px;
-    text-align: center;
-}
+.dashboard { flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; }
+.history-card { width: 100%; max-width: 800px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-.balance-value { font-size: 2.2rem; font-weight: 800; color: var(--primary-blue); display: block; }
+.item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; }
+.amount-pos { color: #28a745; font-weight: bold; }
+.amount-neg { color: #dc3545; font-weight: bold; }
 
-/* תוכן מרכזי */
-.dashboard {
-    flex: 1;
-    padding: 40px;
-    display: none; /* יוצג דרך ה-JS */
-    justify-content: center;
-    overflow-y: auto;
-}
-
-.history-container {
-    width: 100%;
-    max-width: 800px;
-    background: white;
-    padding: 30px;
-    border-radius: 24px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-}
-
-/* חלונות קופצים */
-.overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(8px);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal {
-    background: white;
-    padding: 35px;
-    border-radius: 24px;
-    width: 350px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal { background: white; padding: 30px; border-radius: 15px; width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+.modal input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+.modal-footer { display: flex; gap: 10px; margin-top: 20px; }
