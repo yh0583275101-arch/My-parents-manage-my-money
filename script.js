@@ -1,20 +1,13 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7ppdE1OnRe29xVnw6RBIIQB8Dj2nUcuGTJBss9joEcpnl7t0CCCH2VG4ryNnARR3h/exec";
 let transactions = [];
-let currentPassword = "";
 
 async function init() {
     try {
         const res = await fetch(SCRIPT_URL);
         const data = await res.json();
         transactions = data.transactions || [];
-        currentPassword = data.password || "";
-
-        if (!currentPassword || sessionStorage.getItem('isLoggedIn') === 'true') {
-            showMainScreen();
-        } else {
-            document.getElementById('auth-screen').style.display = 'flex';
-        }
-    } catch (e) { console.error("Error init", e); }
+        render();
+    } catch (e) { console.error("Error", e); }
 }
 
 async function refreshData() {
@@ -23,14 +16,7 @@ async function refreshData() {
         const data = await res.json();
         transactions = data.transactions || [];
         render();
-    } catch (e) { console.error("Error refresh", e); }
-}
-
-function showMainScreen() {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('side-menu').style.display = 'flex';
-    document.getElementById('main-content').style.display = 'flex';
-    render();
+    } catch (e) { console.error("Refresh Error", e); }
 }
 
 function render() {
@@ -39,35 +25,33 @@ function render() {
     let total = 0;
     list.innerHTML = "";
 
-    transactions.slice().reverse().forEach(t => {
+    // מיון: הכי חדש (לפי זמן) מופיע למעלה
+    const sortedData = [...transactions].sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
+    sortedData.forEach(t => {
         const inc = parseFloat(t[2]) || 0;
         const exp = parseFloat(t[3]) || 0;
-        const amt = inc > 0 ? inc : -exp;
-        total += amt;
+        total += (inc - exp);
+
+        const dateStr = t[0] ? new Date(t[0]).toLocaleString('he-IL', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        }) : "";
+
+        let colorClass = inc > 0 ? "amount-pos" : (exp > 0 ? "amount-neg" : "");
+        let displayVal = inc > 0 ? `+ ${inc.toLocaleString()} ₪` : (exp > 0 ? `- ${exp.toLocaleString()} ₪` : "0 ₪");
 
         list.innerHTML += `
             <div class="item">
-                <div>
-                    <div style="font-weight:600">${t[1] || "ללא תיאור"}</div>
-                    <small style="color:gray">${t[0] ? new Date(t[0]).toLocaleDateString('he-IL') : ""}</small>
+                <div style="text-align: right;">
+                    <div style="font-weight:700; font-size: 1.1rem; color: #202124;">${t[1] || "ללא תיאור"}</div>
+                    <small style="color: #5f6368;">${dateStr}</small>
                 </div>
-                <div class="${amt >= 0 ? 'amount-pos' : 'amount-neg'}">${amt.toLocaleString()} ₪</div>
+                <div class="${colorClass}" style="font-size: 1.2rem;">${displayVal}</div>
             </div>`;
     });
     totalEl.innerText = total.toLocaleString() + " ₪";
 }
-
-function openModal(type) {
-    const modal = document.getElementById('action-modal');
-    document.getElementById('modal-title').innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
-    document.getElementById('modal-body').innerHTML = `
-        <input type="number" id="modal-amount" placeholder="סכום (₪)">
-        <input type="text" id="modal-desc" placeholder="תיאור">`;
-    document.getElementById('modal-confirm-btn').onclick = () => submitAction(type);
-    modal.style.display = 'flex';
-}
-
-function closeModal() { document.getElementById('action-modal').style.display = 'none'; }
 
 async function submitAction(type) {
     const amtInput = document.getElementById('modal-amount').value;
@@ -78,33 +62,32 @@ async function submitAction(type) {
     if (type === 'minus') amt = -amt;
 
     closeModal();
-    // שליחה שקטה
-    fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "add", amount: amt, desc: desc }) });
     
-    // עדכון מקומי זמני כדי שתראה את השינוי מיד בלי לחכות לשרת
-    transactions.push([new Date().toISOString(), desc, amt > 0 ? amt : "", amt < 0 ? Math.abs(amt) : ""]);
+    // עדכון זמני באתר לשיפור המהירות
+    const tempDate = new Date().toISOString();
+    transactions.push([tempDate, desc, amt > 0 ? amt : "", amt < 0 ? Math.abs(amt) : ""]);
     render();
-    
-    // רענון אמיתי מהשרת אחרי 2 שניות
-    setTimeout(refreshData, 2000);
-}
 
-function handleAuth() {
-    if (document.getElementById('password-input').value === currentPassword) {
-        sessionStorage.setItem('isLoggedIn', 'true');
-        showMainScreen();
-    } else { alert("טעות!"); }
+    // שליחה שקטה לשרת
+    await fetch(SCRIPT_URL, { 
+        method: 'POST', 
+        mode: 'no-cors', 
+        body: JSON.stringify({ action: "add", amount: amt, desc: desc }) 
+    });
+
+    // רענון נתונים סופי מהשרת
+    setTimeout(refreshData, 1500);
 }
 
 function exportToExcel() {
-    let csv = "\ufeffתאריך,תיאור,הכנסה,הוצאה\n";
+    let csv = "\ufeffתאריך,תיאור,הכנסה +,הוצאה -\n";
     transactions.forEach(t => {
-        csv += `${t[0] ? new Date(t[0]).toLocaleDateString('he-IL') : ""},${t[1]},${t[2]},${t[3]}\n`;
+        csv += `${new Date(t[0]).toLocaleString('he-IL')},${t[1]},${t[2] || ""},${t[3] || ""}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'דוח_כספי.csv';
+    a.download = 'דוח_תנועות.csv';
     a.click();
 }
 
