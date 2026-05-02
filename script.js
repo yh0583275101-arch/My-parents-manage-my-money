@@ -27,29 +27,49 @@ function render() {
     let total = 0;
     list.innerHTML = "";
 
-    // חישוב היתרה לפי הסדר המקורי (מלמעלה למטה בגיליון)
+    // חישוב מדויק של היתרה (תוך תיקון טעויות עבר מהגיליון)
     transactions.forEach(t => {
-        const inc = parseFloat(t[2]) || 0;
-        const exp = parseFloat(t[3]) || 0;
-        total += (inc - exp);
+        let rawInc = parseFloat(t[2]) || 0;
+        let rawExp = parseFloat(t[3]) || 0;
+        
+        // תיקון היסטורי: אם נרשם פעם מינוס בעמודת הכנסה, תתייחס אליו כהוצאה
+        if (rawInc < 0) {
+            rawExp += Math.abs(rawInc);
+            rawInc = 0;
+        }
+        
+        total += (rawInc - rawExp);
     });
 
-    // מיון לתצוגה: הכי חדש למעלה
+    // מיון לתצוגה: הכי חדש למעלה לפי תאריך
     const sortedData = [...transactions].sort((a, b) => new Date(b[0]) - new Date(a[0]));
 
     sortedData.forEach(t => {
-        const inc = parseFloat(t[2]) || 0;
-        const exp = parseFloat(t[3]) || 0;
-        const amt = inc > 0 ? inc : -exp;
+        let rawInc = parseFloat(t[2]) || 0;
+        let rawExp = parseFloat(t[3]) || 0;
+        
+        // תיקון היסטורי לתצוגה עבור שורות ישנות שנהרסו בגוגל שיטס
+        if (rawInc < 0) {
+            rawExp += Math.abs(rawInc);
+            rawInc = 0;
+        }
 
-        if (inc === 0 && exp === 0) return; // דילוג על שורות ריקות
+        // דילוג על שורות ריקות
+        if (rawInc === 0 && rawExp === 0) return;
 
         const dateStr = t[0] ? new Date(t[0]).toLocaleString('he-IL', {
             day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
         }) : "---";
 
-        let amtStr = inc > 0 ? `+ ${inc.toLocaleString()} ₪` : `- ${exp.toLocaleString()} ₪`;
-        let colorClass = inc > 0 ? "amount-pos" : "amount-neg";
+        let amtStr, colorClass;
+
+        if (rawInc > 0) {
+            amtStr = `+ ${rawInc.toLocaleString()} ₪`;
+            colorClass = "amount-pos";
+        } else {
+            amtStr = `- ${rawExp.toLocaleString()} ₪`;
+            colorClass = "amount-neg";
+        }
 
         list.innerHTML += `
             <div class="item">
@@ -61,7 +81,7 @@ function render() {
             </div>`;
     });
 
-    // הצגת יתרה סופית (מוגבל לפורמט קריא)
+    // הצגת יתרה סופית
     totalEl.innerText = total.toLocaleString() + " ₪";
 }
 
@@ -69,23 +89,26 @@ async function submitAction(type) {
     const amtInput = document.getElementById('modal-amount').value;
     const desc = document.getElementById('modal-desc').value || "ללא תיאור";
     
-    // מניעת הכנסת מינוס ידני - האפליקציה מחליטה לפי סוג הכפתור
     let amt = Math.abs(parseFloat(amtInput));
     if (isNaN(amt) || amt === 0) return;
-    if (type === 'minus') amt = -amt;
 
     closeModal();
     
-    // שליחה שקטה
+    // שליחה לגוגל סקריפט: אנחנו שולחים גם את ה"סוג" (plus/minus) כדי שיסדר בעמודות
     fetch(SCRIPT_URL, { 
         method: 'POST', 
-        mode: 'no-cors', 
-        body: JSON.stringify({ action: "add", amount: amt, desc: desc }) 
+        mode: 'no-cors',
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "add", type: type, amount: amt, desc: desc }) 
     });
     
-    // עדכון זמני בתצוגה
+    // עדכון זמני נכון בתצוגה לפני הרענון מגוגל (סידור לעמודה C או D באופן מקומי)
     const now = new Date().toISOString();
-    transactions.push([now, desc, amt > 0 ? amt : "", amt < 0 ? Math.abs(amt) : ""]);
+    if (type === 'plus') {
+        transactions.push([now, desc, amt, ""]);
+    } else {
+        transactions.push([now, desc, "", amt]);
+    }
     render();
     
     setTimeout(refreshData, 2000);
@@ -102,5 +125,5 @@ function openModal(type) {
 }
 
 function closeModal() { document.getElementById('action-modal').style.display = 'none'; }
-// שאר הפונקציות (init, exportToExcel וכו') ללא שינוי
+
 init();
