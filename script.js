@@ -36,6 +36,8 @@ function showMainScreen() {
 function render() {
     const list = document.getElementById('transactions-list');
     const totalEl = document.getElementById('total-balance');
+    if (!list || !totalEl) return;
+    
     let total = 0;
     list.innerHTML = "";
 
@@ -47,7 +49,7 @@ function render() {
         const exp = parseFloat(t[3]) || 0;
         total += (inc - exp);
 
-        const date = t[0] ? new Date(t[0]).toLocaleString('he-IL', {
+        const dateStr = t[0] ? new Date(t[0]).toLocaleString('he-IL', {
             day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
         }) : "---";
 
@@ -57,8 +59,8 @@ function render() {
         list.innerHTML += `
             <div class="item">
                 <div style="text-align: right;">
-                    <div style="font-weight:600; font-size: 1.1rem;">${t[1] || "ללא תיאור"}</div>
-                    <small style="color:gray">${date}</small>
+                    <div style="font-weight:600; font-size: 1.1rem; color: #2d3436;">${t[1] || "ללא תיאור"}</div>
+                    <small style="color:gray">${dateStr}</small>
                 </div>
                 <div class="${colorClass}" style="font-size: 1.2rem;">${amtStr}</div>
             </div>`;
@@ -76,22 +78,22 @@ async function submitAction(type) {
 
     closeModal();
     
-    // עדכון מקומי זמני
+    // עדכון זמני באתר לשיפור המהירות
     const now = new Date().toISOString();
     transactions.push([now, desc, amt > 0 ? amt : "", amt < 0 ? Math.abs(amt) : ""]);
     render();
 
-    // שליחה שקטה
+    // שליחה שקטה לשרת
     fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "add", amount: amt, desc: desc }) });
     
-    setTimeout(refreshData, 1500);
+    setTimeout(refreshData, 2000);
 }
 
 function openModal(type) {
     const modal = document.getElementById('action-modal');
     document.getElementById('modal-title').innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
     document.getElementById('modal-body').innerHTML = `
-        <input type="number" id="modal-amount" placeholder="סכום (₪)">
+        <input type="number" id="modal-amount" placeholder="סכום (₪)" autofocus>
         <input type="text" id="modal-desc" placeholder="תיאור">`;
     document.getElementById('modal-confirm-btn').onclick = () => submitAction(type);
     modal.style.display = 'flex';
@@ -109,7 +111,7 @@ function handleAuth() {
 function exportToExcel() {
     let csv = "\ufeffתאריך,תיאור,הכנסה +,הוצאה -\n";
     transactions.forEach(t => {
-        csv += `${t[0] ? new Date(t[0]).toLocaleString('he-IL') : ""},${t[1]},${t[2]},${t[3]}\n`;
+        csv += `${t[0] ? new Date(t[0]).toLocaleString('he-IL') : ""},${t[1]},${t[2] || ""},${t[3] || ""}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
