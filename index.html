@@ -12,6 +12,7 @@
                 <button class="btn-plus" onclick="openModal('plus')">הוספת כסף (+)</button>
                 <button class="btn-minus" onclick="openModal('minus')">הורדת כסף (-)</button>
                 <button class="btn-secondary" onclick="exportToExcel()">הורדה לאקסל</button>
+                <button class="btn-secondary" onclick="openPasswordModal()">שינוי סיסמה</button>
                 <button class="btn-secondary" onclick="logout()">יציאה</button>
             </div>
             <div class="balance-box">
@@ -36,6 +37,7 @@
         </div>
     </div>
 
+    <!-- חלון פעולה הוספה/הורדה -->
     <div id="action-modal" class="overlay" style="display: none;">
         <div class="modal">
             <h2 id="modal-title">פעולה</h2>
@@ -43,6 +45,18 @@
             <div class="modal-footer">
                 <button id="modal-confirm-btn">אישור</button>
                 <button class="btn-secondary" onclick="closeModal()">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- חלון שינוי סיסמה -->
+    <div id="password-modal" class="overlay" style="display: none;">
+        <div class="modal">
+            <h2>שינוי סיסמה</h2>
+            <input type="text" id="new-password-input" placeholder="הכנס סיסמה חדשה">
+            <div class="modal-footer">
+                <button id="modal-confirm-btn" style="background:#28a745; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer;" onclick="submitNewPassword()">שמירה</button>
+                <button class="btn-secondary" onclick="closePasswordModal()">ביטול</button>
             </div>
         </div>
     </div>
