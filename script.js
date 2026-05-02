@@ -3,33 +3,28 @@ let currentPassword = "";
 let transactions = [];
 
 async function init() {
-    // שלב 1: מסתירים הכל עד שהנתונים נטענים
+    // הסתרת כל האלמנטים בזמן הטעינה
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('main-content').style.display = 'none';
     document.getElementById('side-menu').style.display = 'none';
 
     try {
-        // שלב 2: פנייה לגוגל לקבלת הסיסמה והנתונים
         const res = await fetch(SCRIPT_URL);
         const data = await res.json();
         
         currentPassword = data.password ? data.password.toString() : "";
         transactions = data.transactions || [];
 
-        // שלב 3: בדיקת לוגיקת כניסה
-        if (!currentPassword || currentPassword.trim() === "") {
-            // אם אין סיסמה בגיליון - כניסה ישירה
-            showMainScreen();
-        } else if (sessionStorage.getItem('isLoggedIn') === 'true') {
-            // אם המשתמש כבר מחובר בטאב הנוכחי
+        // בדיקה אם המשתמש כבר מחובר או אם אין סיסמה בכלל
+        if (!currentPassword || currentPassword.trim() === "" || sessionStorage.getItem('isLoggedIn') === 'true') {
             showMainScreen();
         } else {
-            // יש סיסמה וצריך להזין אותה
+            // הצגת מסך כניסה בלבד
             document.getElementById('auth-screen').style.display = 'flex';
         }
     } catch (e) {
-        console.error("שגיאה בטעינה:", e);
-        showAlert("שגיאה בחיבור למסד הנתונים. נסה לרענן.");
+        console.error("שגיאה בטעינת הנתונים:", e);
+        alert("חלה שגיאה בחיבור לשרת. נא לרענן את הדף.");
     }
 }
 
@@ -46,8 +41,8 @@ async function handleAuth() {
 
 function showMainScreen() {
     document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('main-content').style.display = 'flex';
-    document.getElementById('side-menu').style.display = 'flex';
+    document.getElementById('main-content').style.display = 'flex'; // שימוש ב-flex להתאמה ל-CSS
+    document.getElementById('side-menu').style.display = 'flex';   // הצגת התפריט הימני
     render();
 }
 
@@ -69,46 +64,51 @@ function render() {
             list.innerHTML += `
                 <div class="item">
                     <div class="item-info">
-                        <span class="item-date">${date}</span>
-                        <span class="item-desc">${t[1] || "ללא תיאור"}</span>
+                        <small style="color: #5f6368;">${date}</small>
+                        <div style="font-weight: 500; font-size: 1.1rem;">${t[1] || "ללא תיאור"}</div>
                     </div>
-                    <span class="${amt >= 0 ? 'amount-pos' : 'amount-neg'}">${amt.toLocaleString()} ₪</span>
+                    <span class="${amt >= 0 ? 'amount-pos' : 'amount-neg'}" style="font-size: 1.2rem;">
+                        ${amt.toLocaleString()} ₪
+                    </span>
                 </div>`;
         });
+    } else {
+        list.innerHTML = "<p style='text-align:center; color:#5f6368;'>אין פעולות להצגה</p>";
     }
     totalEl.innerText = total.toLocaleString() + " ₪";
 }
 
-// פונקציות ה-Modal וה-Alert נשארות כפי שהיו בקבצים הקודמים
 function openModal(type) {
     const modal = document.getElementById('action-modal');
     const title = document.getElementById('modal-title');
     const body = document.getElementById('modal-body');
     const btn = document.getElementById('modal-confirm-btn');
     
-    document.getElementById('main-wrapper').classList.add('blur');
+    document.getElementById('main-wrapper').style.filter = 'blur(5px)';
     modal.style.display = 'flex';
 
     if (type === 'plus' || type === 'minus') {
         title.innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
         body.innerHTML = `
-            <input type="number" id="modal-amount" placeholder="סכום (₪)">
-            <input type="text" id="modal-desc" placeholder="תיאור">
+            <input type="number" id="modal-amount" placeholder="סכום (₪)" style="width:100%; padding:12px; margin:10px 0; border:1px solid #dadce0; border-radius:4px;">
+            <input type="text" id="modal-desc" placeholder="תיאור הפעולה" style="width:100%; padding:12px; margin:10px 0; border:1px solid #dadce0; border-radius:4px;">
         `;
+        btn.className = type === 'plus' ? 'btn-plus' : 'btn-minus';
         btn.onclick = () => submitAction(type);
     } else if (type === 'password') {
         title.innerText = currentPassword ? "שינוי סיסמה" : "הגדרת סיסמה";
         body.innerHTML = `
-            ${currentPassword ? '<input type="password" id="old-p" placeholder="סיסמה נוכחית">' : ''}
-            <input type="password" id="new-p" placeholder="סיסמה חדשה">
+            ${currentPassword ? '<input type="password" id="old-p" placeholder="סיסמה נוכחית" style="width:100%; padding:12px; margin:10px 0; border:1px solid #dadce0; border-radius:4px;">' : ''}
+            <input type="password" id="new-p" placeholder="סיסמה חדשה" style="width:100%; padding:12px; margin:10px 0; border:1px solid #dadce0; border-radius:4px;">
         `;
+        btn.className = 'btn-plus';
         btn.onclick = updatePassword;
     }
 }
 
 function closeModal() {
     document.getElementById('action-modal').style.display = 'none';
-    document.getElementById('main-wrapper').classList.remove('blur');
+    document.getElementById('main-wrapper').style.filter = 'none';
 }
 
 async function submitAction(type) {
@@ -137,13 +137,16 @@ async function updatePassword() {
     location.reload();
 }
 
-function showAlert(text) {
-    document.getElementById('alert-text').innerText = text;
-    document.getElementById('alert-overlay').style.display = 'flex';
-}
-
-function closeAlert() {
-    document.getElementById('alert-overlay').style.display = 'none';
+function exportToExcel() {
+    let csv = "\ufeffתאריך,תיאור,הכנסה,הוצאה\n";
+    transactions.forEach(t => {
+        csv += `${new Date(t[0]).toLocaleDateString('he-IL')},${t[1]},${t[2] || ""},${t[3] || ""}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `דוח_כספי.csv`;
+    link.click();
 }
 
 function logout() {
@@ -151,4 +154,19 @@ function logout() {
     location.reload();
 }
 
+function showAlert(text) {
+    const alertOverlay = document.getElementById('alert-overlay');
+    if (alertOverlay) {
+        document.getElementById('alert-text').innerText = text;
+        alertOverlay.style.display = 'flex';
+    } else {
+        alert(text);
+    }
+}
+
+function closeAlert() {
+    document.getElementById('alert-overlay').style.display = 'none';
+}
+
+// הפעלת האפליקציה
 init();
