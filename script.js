@@ -1,6 +1,25 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7ppdE1OnRe29xVnw6RBIIQB8Dj2nUcuGTJBss9joEcpnl7t0CCCH2VG4ryNnARR3h/exec";
 let transactions = [];
-let appPassword = ""; // משתנה לשמירת הסיסמה שמגיעה מהשרת
+let appPassword = "";
+
+// פונקציה ליצירת חלון קופץ מעוצב (מחליף את ה-alert הרגיל)
+function showCustomAlert(title, message) {
+    // אם כבר יש חלון פתוח, נמחק אותו קודם
+    let existingAlert = document.getElementById('custom-alert-box');
+    if (existingAlert) existingAlert.remove();
+
+    const alertHTML = `
+        <div id="custom-alert-box" class="overlay" style="display: flex;">
+            <div class="modal" style="text-align: center;">
+                <h2 style="color: #dc3545; margin-top: 0;">${title}</h2>
+                <p style="font-size: 16px; margin-bottom: 20px; color: #333;">${message}</p>
+                <button class="btn-secondary" style="width: 100%;" onclick="document.getElementById('custom-alert-box').remove()">הבנתי וסגור</button>
+            </div>
+        </div>
+    `;
+    // הזרקת החלון המעוצב לתוך העמוד
+    document.body.insertAdjacentHTML('beforeend', alertHTML);
+}
 
 // פונקציית האתחול - מביאה נתונים ומציגה את מסך הכניסה
 async function init() {
@@ -8,29 +27,30 @@ async function init() {
         const res = await fetch(SCRIPT_URL);
         const data = await res.json();
         transactions = data.transactions || [];
-        appPassword = data.password || ""; // שמירת הסיסמה מהגליליון
+        appPassword = data.password || ""; 
         
         render();
-        
-        // הצגת מסך ההתחברות אחרי שהנתונים נטענו
         document.getElementById('auth-screen').style.display = 'flex';
     } catch (e) { 
         console.error("Error init", e); 
-        alert("שגיאה בטעינת נתונים, רענן את העמוד.");
+        showCustomAlert("שגיאת תקשורת", "יש בעיה בטעינת הנתונים, אנא רענן את העמוד.");
     }
 }
 
-// פונקציית התחברות שמבטלת את המסך הלבן!
+// פונקציית התחברות עם בדיקת סיסמה מתוקנת!
 function handleAuth() {
-    const passInput = document.getElementById('password-input').value;
+    const passInput = document.getElementById('password-input').value.trim();
     
-    // בודק אם הסיסמה תואמת למה שמוגדר בגוגל שיטס בגיליון Settings
-    if (passInput === appPassword && appPassword !== "") {
+    // ממירים את הסיסמה מגוגל לטקסט וחותכים רווחים כדי למנוע שגיאות סוג
+    const correctPassword = String(appPassword).trim();
+
+    if (passInput === correctPassword && correctPassword !== "") {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('side-menu').style.display = 'flex';
         document.getElementById('main-content').style.display = 'flex';
     } else {
-        alert("סיסמה שגויה, נסה שוב.");
+        // קריאה לחלון המעוצב שלנו במקום alert של כרום
+        showCustomAlert("שגיאה", "הסיסמה שהזנת שגויה, נסה שוב.");
     }
 }
 
@@ -51,7 +71,6 @@ function render() {
     let total = 0;
     list.innerHTML = "";
 
-    // חישוב מדויק של היתרה (תוך תיקון טעויות עבר מהגיליון)
     transactions.forEach(t => {
         let rawInc = parseFloat(t[2]) || 0;
         let rawExp = parseFloat(t[3]) || 0;
@@ -64,7 +83,6 @@ function render() {
         total += (rawInc - rawExp);
     });
 
-    // מיון לתצוגה: הכי חדש למעלה לפי תאריך
     const sortedData = [...transactions].sort((a, b) => new Date(b[0]) - new Date(a[0]));
 
     sortedData.forEach(t => {
@@ -102,13 +120,11 @@ function render() {
             </div>`;
     });
 
-    // הצגת יתרה סופית
     totalEl.innerText = total.toLocaleString() + " ₪";
 }
 
-// פונקציה להורדה לאקסל / CSV
 function exportToExcel() {
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // הוספת BOM כדי שהעברית תעבוד באקסל
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
     csvContent += "תאריך,תיאור,הכנסה,הוצאה\n";
     
     transactions.forEach(t => {
@@ -128,17 +144,18 @@ function exportToExcel() {
     document.body.removeChild(link);
 }
 
-// שליחת נתונים
 async function submitAction(type) {
     const amtInput = document.getElementById('modal-amount').value;
     const desc = document.getElementById('modal-desc').value || "ללא תיאור";
     
     let amt = Math.abs(parseFloat(amtInput));
-    if (isNaN(amt) || amt === 0) return;
+    if (isNaN(amt) || amt === 0) {
+        showCustomAlert("שגיאה בהזנה", "חובה להזין סכום תקין הגדול מ-0.");
+        return;
+    }
 
     closeModal();
     
-    // שליחה לגוגל סקריפט: אנחנו שולחים גם את ה"סוג" (plus/minus) כדי שיסדר בעמודות
     fetch(SCRIPT_URL, { 
         method: 'POST', 
         mode: 'no-cors',
@@ -146,38 +163,4 @@ async function submitAction(type) {
         body: JSON.stringify({ action: "add", type: type, amount: amt, desc: desc }) 
     });
     
-    // עדכון זמני נכון בתצוגה לפני הרענון מגוגל (סידור לעמודה C או D באופן מקומי)
-    const now = new Date().toISOString();
-    if (type === 'plus') {
-        transactions.push([now, desc, amt, ""]);
-    } else {
-        transactions.push([now, desc, "", amt]);
-    }
-    render();
-    
-    setTimeout(refreshData, 2000);
-}
-
-async function refreshData() {
-    try {
-        const res = await fetch(SCRIPT_URL);
-        const data = await res.json();
-        transactions = data.transactions || [];
-        render();
-    } catch (e) { console.error("Error refresh", e); }
-}
-
-function openModal(type) {
-    const modal = document.getElementById('action-modal');
-    document.getElementById('modal-title').innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
-    document.getElementById('modal-body').innerHTML = `
-        <input type="number" id="modal-amount" placeholder="סכום (₪)" autofocus min="0">
-        <input type="text" id="modal-desc" placeholder="תיאור">`;
-    document.getElementById('modal-confirm-btn').onclick = () => submitAction(type);
-    modal.style.display = 'flex';
-}
-
-function closeModal() { document.getElementById('action-modal').style.display = 'none'; }
-
-// הפעלת האתר
-init();
+    const now = new Date().to
