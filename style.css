@@ -1,15 +1,18 @@
 :root {
-    /* צבעים בסיסיים */
-    --sea-blue: #0077be;
-    --purple-pink: #a29bfe;
-    --hot-pink: #fd79a8;
+    --primary-blue: #2c3e50;
+    --light-bg: #f4f7f6;
+    --white: #ffffff;
+    --border-color: #dcdde1;
+    --success-green: #27ae60;
+    --error-red: #e74c3c;
 }
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--primary-blue);
     height: 100vh;
-    width: 100vw;
     display: flex;
     direction: rtl;
     overflow: hidden;
@@ -21,115 +24,94 @@ body {
     height: 100%;
 }
 
-/* צד ימין: חלק הכפתורים - בעיקר סגול ורדרד עם כתמי כחול ים מטושטשים */
+/* תפריט צד ימין סטנדרטי */
 .side-menu {
-    width: 300px;
-    height: 100%;
-    background: var(--purple-pink);
-    /* אפקט כתמים מרוחים */
-    background-image: 
-        radial-gradient(at 20% 30%, var(--sea-blue) 0px, transparent 50%),
-        radial-gradient(at 80% 70%, var(--sea-blue) 0px, transparent 50%);
+    width: 260px;
+    background-color: var(--primary-blue);
+    color: var(--white);
     display: flex;
     flex-direction: column;
-    padding: 60px 30px;
+    padding: 30px 20px;
     box-sizing: border-box;
-    position: relative;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
 }
 
-/* ריווח בין כפתורים */
 .buttons-list {
     display: flex;
     flex-direction: column;
-    gap: 30px; /* מרווח גדול יותר בין הכפתורים */
+    gap: 15px;
 }
 
-/* כפתורים ויתרה בצבעי החלק השמאלי (כחול ים עם כתמי סגול) */
-button, .balance-value {
-    background: var(--sea-blue);
-    background-image: radial-gradient(at 50% 50%, var(--purple-pink) 0px, transparent 100%);
+button {
     border: none;
-    border-radius: 50px;
-    padding: 18px;
-    color: white;
-    font-weight: bold;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    border-radius: 5px;
+    padding: 12px;
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
-    font-size: 16px;
-    text-align: center;
+    transition: background 0.2s;
+    font-size: 14px;
 }
 
-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 25px rgba(0,0,0,0.2);
-}
+.btn-plus { background-color: var(--success-green); color: white; }
+.btn-minus { background-color: var(--error-red); color: white; }
+.secondary { background-color: #ecf0f1; color: var(--primary-blue); }
 
-/* היתרה בעמודה של הכפתורים למטה */
+button:hover { opacity: 0.9; }
+
+/* אזור יתרה בתחתית התפריט */
 .balance-container {
     margin-top: auto;
+    padding: 20px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
     text-align: center;
-    color: white;
 }
 
-.balance-label {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-    opacity: 0.9;
-}
+.balance-label { display: block; font-size: 0.9rem; margin-bottom: 5px; }
+.balance-value { font-size: 1.8rem; font-weight: bold; }
 
-.balance-value {
-    display: inline-block;
-    width: 100%;
-    font-size: 2.5rem;
-    padding: 15px 0;
-    -webkit-background-clip: initial;
-    -webkit-text-fill-color: white;
-}
-
-/* צד שמאל: פעולות אחרונות - כחול ים עם כתמי סגול מרוחים */
+/* אזור תוכן מרכזי */
 .dashboard {
     flex: 1;
-    background: var(--sea-blue);
-    background-image: 
-        radial-gradient(at 10% 10%, var(--purple-pink) 0px, transparent 40%),
-        radial-gradient(at 90% 90%, var(--hot-pink) 0px, transparent 40%),
-        radial-gradient(at 50% 50%, var(--purple-pink) 0px, transparent 50%);
-    padding: 60px;
+    padding: 40px;
     overflow-y: auto;
 }
 
-/* רשימה ללא גבול תוחם - האותיות בניגוד לרקע */
 .history-container {
-    width: 100%;
-    background: transparent; /* ללא רקע תוחם */
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
-.history-container h2 {
-    color: white;
-    font-size: 2.5rem;
-    margin-bottom: 40px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
+h2 { border-bottom: 2px solid var(--light-bg); padding-bottom: 15px; margin-top: 0; }
 
 .bank-list .item {
     display: flex;
     justify-content: space-between;
-    padding: 25px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* קו דק מאוד להפרדה */
-    color: white; /* צבע מנוגד לרקע */
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--light-bg);
 }
 
-.item-desc { font-size: 1.3rem; font-weight: 500; }
-.item-date { opacity: 0.7; margin-bottom: 5px; display: block; }
+.amount-pos { color: var(--success-green); font-weight: bold; }
+.amount-neg { color: var(--error-red); font-weight: bold; }
 
-/* צבעי סכומים מודגשים על הרקע הכהה */
-.amount-pos { color: #55efc4; font-weight: bold; font-size: 1.4rem; }
-.amount-neg { color: #fab1a0; font-weight: bold; font-size: 1.4rem; }
+/* חלונות קופצים */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
 
-/* חלונות קופצים - נשארים נקיים */
-/* .overlay { */
-   /* backdrop-filter: blur(20px);
- /*   background: rgba(0,0,0,0.3);
-/*}*/
+.modal {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 350px;
+}
