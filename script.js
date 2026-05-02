@@ -2,7 +2,6 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxg7mcXrDhZt6XdlBZz6
 let transactions = [];
 let appPassword = "";
 
-// חלון התראות מעוצב
 function showCustomAlert(title, message) {
     let existingAlert = document.getElementById('custom-alert-box');
     if (existingAlert) existingAlert.remove();
@@ -19,7 +18,6 @@ function showCustomAlert(title, message) {
     document.body.insertAdjacentHTML('beforeend', alertHTML);
 }
 
-// אתחול
 async function init() {
     try {
         const res = await fetch(SCRIPT_URL);
@@ -33,7 +31,6 @@ async function init() {
     }
 }
 
-// כניסה
 function handleAuth() {
     const passInput = document.getElementById('password-input').value.trim();
     const correctPassword = String(appPassword).trim();
@@ -54,7 +51,6 @@ function logout() {
     document.getElementById('auth-screen').style.display = 'flex';
 }
 
-// תצוגה
 function render() {
     const list = document.getElementById('transactions-list');
     const totalEl = document.getElementById('total-balance');
@@ -63,22 +59,32 @@ function render() {
     let total = 0;
     list.innerHTML = "";
 
-    // חישוב יתרה כוללת (פלוס ומינוס מאותה עמודה)
+    // חישוב יתרה: עמודה C פחות עמודה D
     transactions.forEach(t => {
-        let amtC = parseFloat(t[2]) || 0; 
-        let amtD = parseFloat(t[3]) || 0; // למקרה שיש נתונים ישנים בעמודה ד'
-        total += (amtC - Math.abs(amtD));
+        let inc = parseFloat(t[2]) || 0; // עמודה C - הכנסות
+        let exp = parseFloat(t[3]) || 0; // עמודה D - הוצאות
+        
+        // תיקון אוטומטי אם בטעות בעבר נרשם מינוס בעמודת הכנסה
+        if (inc < 0) {
+            exp += Math.abs(inc);
+            inc = 0;
+        }
+        
+        total += (inc - exp);
     });
 
     const sortedData = [...transactions].sort((a, b) => new Date(b[0]) - new Date(a[0]));
 
     sortedData.forEach(t => {
-        let amtC = parseFloat(t[2]) || 0;
-        let amtD = parseFloat(t[3]) || 0;
+        let inc = parseFloat(t[2]) || 0;
+        let exp = parseFloat(t[3]) || 0;
         
-        let netAmount = amtC - Math.abs(amtD);
+        if (inc < 0) {
+            exp += Math.abs(inc);
+            inc = 0;
+        }
 
-        if (netAmount === 0 && amtC === 0 && amtD === 0) return;
+        if (inc === 0 && exp === 0) return;
 
         const dateStr = t[0] ? new Date(t[0]).toLocaleString('he-IL', {
             day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -86,11 +92,14 @@ function render() {
 
         let amtStr, colorClass;
 
-        if (netAmount > 0) {
-            amtStr = `+ ${netAmount.toLocaleString()} ₪`;
+        // אם יש נתון בעמודת הכנסה
+        if (inc > 0) {
+            amtStr = `+ ${inc.toLocaleString()} ₪`;
             colorClass = "amount-pos";
-        } else {
-            amtStr = `- ${Math.abs(netAmount).toLocaleString()} ₪`;
+        } 
+        // אם יש נתון בעמודת הוצאה
+        else if (exp > 0) {
+            amtStr = `- ${exp.toLocaleString()} ₪`;
             colorClass = "amount-neg";
         }
 
@@ -107,7 +116,6 @@ function render() {
     totalEl.innerText = total.toLocaleString() + " ₪";
 }
 
-// הורדה / הוספה
 async function submitAction(type) {
     const amtInput = document.getElementById('modal-amount').value;
     const desc = document.getElementById('modal-desc').value || "ללא תיאור";
@@ -128,15 +136,17 @@ async function submitAction(type) {
     });
     
     const now = new Date().toISOString();
-    // עדכון מקומי מהיר וזמני
-    let tempAmt = (type === 'plus') ? amt : -amt;
-    transactions.push([now, desc, tempAmt, ""]);
+    // עדכון זמני מושלם למערכת של שתי עמודות
+    if (type === 'plus') {
+        transactions.push([now, desc, amt, ""]); // רושם לעמודה C
+    } else {
+        transactions.push([now, desc, "", amt]); // רושם לעמודה D
+    }
     
     render();
     setTimeout(refreshData, 2000);
 }
 
-// אקסל
 function exportToExcel() {
     let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
     csvContent += "תאריך,תיאור,הכנסה,הוצאה\n";
@@ -153,7 +163,6 @@ function exportToExcel() {
     document.body.removeChild(link);
 }
 
-// --- שינוי סיסמה ---
 function openPasswordModal() {
     document.getElementById('new-password-input').value = "";
     document.getElementById('password-modal').style.display = 'flex';
