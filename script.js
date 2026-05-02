@@ -12,26 +12,19 @@ async function init() {
         if (!currentPassword || sessionStorage.getItem('isLoggedIn') === 'true') {
             showMainScreen();
         } else {
-            document.getElementById('auth-screen').style.display = 'flex';
+            document.body.innerHTML += `<div id='login-overlay' style='position:fixed;top:0;left:0;width:100%;height:100%;background:white;display:flex;justify-content:center;align-items:center;'><div style='text-align:center'><h2>כניסה</h2><input type='password' id='pass' placeholder='סיסמה' style='padding:10px;border-radius:8px;border:1px solid #ccc'><br><br><button onclick='checkLogin()' style='padding:10px 20px;background:#1a73e8;color:white;border:none;border-radius:8px;cursor:pointer'>כניסה</button></div></div>`;
         }
-    } catch (e) {
-        console.error("שגיאה בחיבור:", e);
-    }
+    } catch (e) { console.error(e); }
 }
 
-async function refreshData() {
-    try {
-        const res = await fetch(SCRIPT_URL);
-        const data = await res.json();
-        transactions = data.transactions || [];
-        render(); 
-    } catch (e) {
-        console.error("שגיאה ברענון:", e);
-    }
+function checkLogin() {
+    if (document.getElementById('pass').value === currentPassword) {
+        sessionStorage.setItem('isLoggedIn', 'true');
+        location.reload();
+    } else { alert("טעות!"); }
 }
 
 function showMainScreen() {
-    document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('side-menu').style.display = 'flex';
     document.getElementById('main-content').style.display = 'flex';
     render();
@@ -49,68 +42,41 @@ function render() {
         const amt = income > 0 ? income : -expense;
         total += amt;
 
-        const date = t[0] ? new Date(t[0]).toLocaleDateString('he-IL') : "---";
-        // עיצוב טקסט מנוגד וברור ללא מסגרת
         list.innerHTML += `
-            <div style="display: flex; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.05); color: #202124;">
+            <div style="display:flex; justify-content:space-between; padding:15px 0; border-bottom:1px solid #f1f3f4;">
                 <div>
-                    <div style="font-weight: 600; font-size: 1.1rem;">${t[1] || "ללא תיאור"}</div>
-                    <small style="color: #5f6368;">${date}</small>
+                    <div style="font-weight:600">${t[1] || "ללא תיאור"}</div>
+                    <small style="color:#718096">${t[0] ? new Date(t[0]).toLocaleDateString('he-IL') : ""}</small>
                 </div>
-                <div style="font-weight: bold; font-size: 1.2rem; color: ${amt >= 0 ? '#34a853' : '#ea4335'};">
-                    ${amt >= 0 ? '+' : '-'}${Math.abs(amt).toLocaleString()} ₪
-                </div>
+                <div style="font-weight:bold; color:${amt >= 0 ? '#34a853' : '#ea4335'}">${amt >= 0 ? '+' : '-'}${Math.abs(amt).toLocaleString()} ₪</div>
             </div>`;
     });
     totalEl.innerText = total.toLocaleString() + " ₪";
-}
-
-async function submitAction(type) {
-    const amtInput = document.getElementById('modal-amount').value;
-    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
-    if (!amtInput) return;
-
-    let amount = Math.abs(parseFloat(amtInput));
-    if (type === 'minus') amount = -amount;
-
-    closeModal();
-    
-    try {
-        await fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify({ action: "add", amount: amount, desc: desc }) 
-        });
-        // עדכון הנתונים באתר ללא רענון דף
-        setTimeout(refreshData, 1000);
-    } catch (e) {
-        console.error("שגיאה בשמירה:", e);
-    }
 }
 
 function openModal(type) {
     const modal = document.getElementById('action-modal');
     document.getElementById('modal-title').innerText = type === 'plus' ? 'הוספת סכום' : 'הורדת סכום';
     document.getElementById('modal-body').innerHTML = `
-        <input type="number" id="modal-amount" placeholder="סכום (₪)" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px;">
-        <input type="text" id="modal-desc" placeholder="תיאור" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px;">
-    `;
+        <input type="number" id="modal-amount" placeholder="סכום (₪)" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
+        <input type="text" id="modal-desc" placeholder="תיאור" style="width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">`;
+    document.getElementById('modal-confirm-btn').className = type === 'plus' ? 'btn-plus' : 'btn-minus';
     document.getElementById('modal-confirm-btn').onclick = () => submitAction(type);
     modal.style.display = 'flex';
 }
 
-function closeModal() {
-    document.getElementById('action-modal').style.display = 'none';
+function closeModal() { document.getElementById('action-modal').style.display = 'none'; }
+
+async function submitAction(type) {
+    const amt = document.getElementById('modal-amount').value;
+    const desc = document.getElementById('modal-desc').value || "ללא תיאור";
+    if (!amt) return;
+    closeModal();
+    let finalAmt = type === 'plus' ? parseFloat(amt) : -parseFloat(amt);
+    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "add", amount: finalAmt, desc: desc }) });
+    setTimeout(() => location.reload(), 1000);
 }
 
-function handleAuth() {
-    const input = document.getElementById('password-input').value;
-    if (input === currentPassword) {
-        sessionStorage.setItem('isLoggedIn', 'true');
-        showMainScreen();
-    } else {
-        alert("סיסמה שגויה!");
-    }
-}
+function logout() { sessionStorage.removeItem('isLoggedIn'); location.reload(); }
 
 init();
