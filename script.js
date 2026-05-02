@@ -1,4 +1,4 @@
-const SCRIPT_URL = "כאן_הכנס_את_הקישור_החדש_שלך";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7ppdE1OnRe29xVnw6RBIIQB8Dj2nUcuGTJBss9joEcpnl7t0CCCH2VG4ryNnARR3h/exec";
 let transactions = [];
 
 async function init() {
